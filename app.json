@@ -1,0 +1,53 @@
+{
+  "expo": {
+    "name": "Lumière",
+    "slug": "lumiere",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "scheme": "lumiere",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#1B1B3A"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.lumiere.meditationbiblique",
+      "infoPlist": {
+        "UIBackgroundModes": ["audio"]
+      }
+    },
+    "android": {
+      "package": "com.lumiere.meditationbiblique",
+      "edgeToEdgeEnabled": true,
+      "adaptiveIcon": {
+        "backgroundColor": "#1B1B3A",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro",
+      "output": "single"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-notifications",
+        {
+          "color": "#D9A441",
+          "defaultChannel": "rappels"
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": false
+    }
+  }
+}
