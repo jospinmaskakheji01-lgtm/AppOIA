@@ -6,7 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Carte, Etiquette, Separateur, SousTitre, Titre } from '../../src/components/ui';
 import {
   dureesSilence,
-  etapesLectio,
+  etapesMeditationOIA,
   prieresTraditionnelles,
   seances,
 } from '../../src/data/meditations';
@@ -36,22 +36,22 @@ export default function Mediter() {
           : 'La méditation chrétienne ne vide pas l’esprit : elle le remplit de la Parole.'}
       </SousTitre>
 
-      <Separateur label="Lectio divina" />
+      <Separateur label="Méditation OIA" />
 
-      <Carte onPress={() => router.push('/meditation/lectio')} accent>
+      <Carte onPress={() => router.push('/meditation/oia')} accent>
         <Text
           style={{
             color: t.colors.text,
             fontSize: fontSize.xl,
             fontWeight: '700',
           }}>
-          Lecture priante en quatre temps
+          Les trois temps, en silence
         </Text>
         <SousTitre style={{ marginTop: spacing.xs }}>
-          Une méthode monastique vieille de quinze siècles, guidée pas à pas · environ 17 min
+          Observer, interpréter, appliquer — la méthode priée plutôt qu’écrite · 15 min
         </SousTitre>
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginTop: spacing.lg }}>
-          {etapesLectio.map((e) => (
+          {etapesMeditationOIA.map((e) => (
             <View
               key={e.cle}
               style={{
@@ -61,12 +61,17 @@ export default function Mediter() {
                 paddingHorizontal: spacing.md,
               }}>
               <Text style={{ color: t.colors.textMuted, fontSize: fontSize.xs, fontWeight: '700' }}>
-                {e.latin}
+                {e.lettre} · {e.titre}
               </Text>
             </View>
           ))}
         </View>
       </Carte>
+
+      <SousTitre style={{ marginTop: spacing.md }}>
+        Pour l’étude écrite complète, avec les questions de chaque temps, passez par
+        l’onglet Étudier.
+      </SousTitre>
 
       <Separateur label="Méditations guidées" />
 

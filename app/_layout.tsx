@@ -33,8 +33,11 @@ function Navigation() {
         <Stack.Screen name="plan/[id]" options={{ title: 'Plan' }} />
         <Stack.Screen name="plan/[id]/jour/[jour]" options={{ title: 'Étude du jour' }} />
         <Stack.Screen name="meditation/[id]" options={{ headerShown: false }} />
-        <Stack.Screen name="meditation/lectio" options={{ headerShown: false }} />
+        <Stack.Screen name="meditation/oia" options={{ headerShown: false }} />
         <Stack.Screen name="meditation/silence" options={{ headerShown: false }} />
+        <Stack.Screen name="oia/[id]" options={{ title: 'Étude OIA' }} />
+        <Stack.Screen name="oia/nouvelle" options={{ title: 'Nouvelle étude', presentation: 'modal' }} />
+        <Stack.Screen name="oia/methode" options={{ title: 'La méthode OIA' }} />
         <Stack.Screen name="journal/nouvelle" options={{ title: 'Nouvelle entrée', presentation: 'modal' }} />
         <Stack.Screen name="prieres" options={{ title: 'Mes prières' }} />
         <Stack.Screen name="reglages" options={{ title: 'Réglages' }} />

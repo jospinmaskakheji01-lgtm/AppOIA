@@ -9,10 +9,31 @@ import React, {
 } from 'react';
 import { useColorScheme } from 'react-native';
 
+import { CleApplication, CleInterpretation, CleObservation } from '../data/oia';
 import { Theme, ThemeName, themes } from '../theme/theme';
 import { calculerSerie, cleJour } from '../utils/dates';
 
 const CLE_STOCKAGE = '@lumiere/etat-v1';
+
+/** Une étude conduite selon la méthode OIA. */
+export interface EtudeOIA {
+  id: string;
+  /** Passage de la bibliothèque, quand l'étude en part. */
+  passageId?: string;
+  /** Référence affichée — celle du passage, ou une référence saisie librement. */
+  reference: string;
+  cree: string;
+  modifie: string;
+  observation: Partial<Record<CleObservation, string>>;
+  interpretation: Partial<Record<CleInterpretation, string>>;
+  application: Partial<Record<CleApplication, string>>;
+  engagement: string;
+  versetMemoire: string;
+  terminee: boolean;
+  /** Renseignés lorsque l'étude est celle d'une journée de plan. */
+  planId?: string;
+  jour?: number;
+}
 
 export interface EntreeJournal {
   id: string;
@@ -49,6 +70,7 @@ export interface Reglages {
 
 export interface EtatApp {
   joursTermines: string[];
+  etudes: EtudeOIA[];
   progressions: Record<string, ProgressionPlan>;
   journal: EntreeJournal[];
   prieres: SujetPriere[];
@@ -61,6 +83,7 @@ export interface EtatApp {
 
 const ETAT_INITIAL: EtatApp = {
   joursTermines: [],
+  etudes: [],
   progressions: {},
   journal: [],
   prieres: [],
@@ -83,6 +106,16 @@ interface ContexteApp {
   theme: Theme;
   serie: number;
   marquerJourTermine: (date?: string) => void;
+  creerEtude: (init: {
+    reference: string;
+    passageId?: string;
+    planId?: string;
+    jour?: number;
+  }) => EtudeOIA;
+  majEtude: (id: string, champs: Partial<Omit<EtudeOIA, 'id' | 'cree'>>) => void;
+  terminerEtude: (id: string) => void;
+  supprimerEtude: (id: string) => void;
+  etudeDuPlan: (planId: string, jour: number) => EtudeOIA | undefined;
   terminerJourPlan: (planId: string, jour: number) => void;
   reinitialiserPlan: (planId: string) => void;
   ajouterEntree: (entree: Omit<EntreeJournal, 'id' | 'date'>) => void;
@@ -144,6 +177,89 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         : { ...e, joursTermines: [...e.joursTermines, cle].sort() },
     );
   }, []);
+
+  const creerEtude = useCallback(
+    (init: { reference: string; passageId?: string; planId?: string; jour?: number }) => {
+      const maintenant = new Date().toISOString();
+      const etude: EtudeOIA = {
+        id: id(),
+        reference: init.reference,
+        passageId: init.passageId,
+        planId: init.planId,
+        jour: init.jour,
+        cree: maintenant,
+        modifie: maintenant,
+        observation: {},
+        interpretation: {},
+        application: {},
+        engagement: '',
+        versetMemoire: '',
+        terminee: false,
+      };
+      setEtat((e) => ({ ...e, etudes: [etude, ...e.etudes] }));
+      return etude;
+    },
+    [],
+  );
+
+  const majEtude = useCallback(
+    (etudeId: string, champs: Partial<Omit<EtudeOIA, 'id' | 'cree'>>) => {
+      setEtat((e) => ({
+        ...e,
+        etudes: e.etudes.map((x) =>
+          x.id === etudeId ? { ...x, ...champs, modifie: new Date().toISOString() } : x,
+        ),
+      }));
+    },
+    [],
+  );
+
+  /** Achever une étude vaut journée vécue, et complète la progression du plan associé. */
+  const terminerEtude = useCallback((etudeId: string) => {
+    const cle = cleJour();
+    setEtat((e) => {
+      const etude = e.etudes.find((x) => x.id === etudeId);
+      if (!etude) return e;
+      const etudes = e.etudes.map((x) =>
+        x.id === etudeId ? { ...x, terminee: true, modifie: new Date().toISOString() } : x,
+      );
+      const joursTermines = e.joursTermines.includes(cle)
+        ? e.joursTermines
+        : [...e.joursTermines, cle].sort();
+
+      if (!etude.planId || etude.jour === undefined) {
+        return { ...e, etudes, joursTermines };
+      }
+      const existante = e.progressions[etude.planId];
+      const joursPlan = existante
+        ? Array.from(new Set([...existante.joursTermines, etude.jour])).sort((a, b) => a - b)
+        : [etude.jour];
+      return {
+        ...e,
+        etudes,
+        joursTermines,
+        progressions: {
+          ...e.progressions,
+          [etude.planId]: {
+            planId: etude.planId,
+            joursTermines: joursPlan,
+            commence: existante?.commence ?? cle,
+            dernierJour: cle,
+          },
+        },
+      };
+    });
+  }, []);
+
+  const supprimerEtude = useCallback((etudeId: string) => {
+    setEtat((e) => ({ ...e, etudes: e.etudes.filter((x) => x.id !== etudeId) }));
+  }, []);
+
+  const etudeDuPlan = useCallback(
+    (planId: string, jour: number) =>
+      etat.etudes.find((x) => x.planId === planId && x.jour === jour),
+    [etat.etudes],
+  );
 
   const terminerJourPlan = useCallback(
     (planId: string, jour: number) => {
@@ -271,6 +387,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       theme,
       serie,
       marquerJourTermine,
+      creerEtude,
+      majEtude,
+      terminerEtude,
+      supprimerEtude,
+      etudeDuPlan,
       terminerJourPlan,
       reinitialiserPlan,
       ajouterEntree,
@@ -289,6 +410,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       theme,
       serie,
       marquerJourTermine,
+      creerEtude,
+      majEtude,
+      terminerEtude,
+      supprimerEtude,
+      etudeDuPlan,
       terminerJourPlan,
       reinitialiserPlan,
       ajouterEntree,

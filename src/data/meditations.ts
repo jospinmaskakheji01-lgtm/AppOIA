@@ -4,47 +4,43 @@
  * et des temps de silence minutés avec une respiration accompagnée.
  */
 
-export interface EtapeLectio {
-  cle: 'lectio' | 'meditatio' | 'oratio' | 'contemplatio';
+export interface EtapeMeditationOIA {
+  cle: 'observation' | 'interpretation' | 'application';
   titre: string;
-  latin: string;
+  lettre: string;
   duree: number;
   consigne: string;
   invite: string;
 }
 
-export const etapesLectio: EtapeLectio[] = [
+/**
+ * Méditation OIA guidée : les trois temps de la méthode, minutés,
+ * pour une lecture priante plutôt qu'une étude écrite.
+ */
+export const etapesMeditationOIA: EtapeMeditationOIA[] = [
   {
-    cle: 'lectio',
-    titre: 'Lire',
-    latin: 'Lectio',
-    duree: 180,
-    consigne: `Lisez le passage lentement, à voix basse si possible. Ne cherchez pas encore à comprendre : laissez simplement les mots passer.`,
-    invite: `Quel mot, quelle phrase s'arrête devant vous ?`,
-  },
-  {
-    cle: 'meditatio',
-    titre: 'Méditer',
-    latin: 'Meditatio',
+    cle: 'observation',
+    titre: 'Observer',
+    lettre: 'O',
     duree: 300,
-    consigne: `Reprenez le mot ou la phrase qui vous a retenu. Répétez-le intérieurement. Laissez-le rejoindre ce que vous vivez aujourd'hui.`,
-    invite: `Pourquoi ce mot, aujourd'hui, pour vous ?`,
+    consigne: `Lisez le passage deux fois, lentement. Ne cherchez pas encore ce qu'il signifie : contentez-vous de voir. Qui parle ? Où ? Quand ? Que se passe-t-il exactement ?`,
+    invite: `Quel mot, quel détail vous arrête ?`,
   },
   {
-    cle: 'oratio',
-    titre: 'Prier',
-    latin: 'Oratio',
-    duree: 240,
-    consigne: `Répondez à Dieu. Dites-lui simplement ce que la lecture a remué : une demande, un merci, une plainte, un pardon.`,
-    invite: `Que voulez-vous dire à Dieu maintenant ?`,
-  },
-  {
-    cle: 'contemplatio',
-    titre: 'Demeurer',
-    latin: 'Contemplatio',
+    cle: 'interpretation',
+    titre: 'Interpréter',
+    lettre: 'I',
     duree: 300,
-    consigne: `Cessez les mots. Restez là, en présence, sans rien produire. Si votre esprit s'échappe, revenez doucement à la phrase du début.`,
-    invite: `Restez simplement. Il n'y a rien à réussir.`,
+    consigne: `Demandez-vous ce que l'auteur voulait dire à ses premiers destinataires, puis ce que Dieu veut dire à son Église par ce texte. Laissez la réponse venir sans la forcer.`,
+    invite: `Qu'est-ce que ce texte dit de Dieu ? Qu'est-ce qu'il dit de l'homme ?`,
+  },
+  {
+    cle: 'application',
+    titre: 'Appliquer',
+    lettre: 'A',
+    duree: 300,
+    consigne: `Un exemple à suivre, un péché à éviter, une promesse à réclamer, un commandement à obéir, un défi à relever ? Choisissez une seule chose, et parlez-en à Dieu.`,
+    invite: `Que dois-je faire aujourd'hui ?`,
   },
 ];
 

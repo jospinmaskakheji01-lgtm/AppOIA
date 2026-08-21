@@ -1,19 +1,34 @@
 import { useRouter } from 'expo-router';
-import React from 'react';
+import React, { useState } from 'react';
 import { ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Carte, Etiquette, Separateur, SousTitre, Titre } from '../../src/components/ui';
+import { IconeCoche } from '../../src/components/icons';
+import {
+  Bouton,
+  Carte,
+  Etiquette,
+  Puce,
+  Separateur,
+  SousTitre,
+  Titre,
+} from '../../src/components/ui';
+import { progressionTemps } from '../../src/data/oia';
 import { plans } from '../../src/data/plans';
-import { useApp } from '../../src/store/AppContext';
+import { EtudeOIA, useApp } from '../../src/store/AppContext';
 import { fontSize, radius, spacing } from '../../src/theme/theme';
+import { dateCourte } from '../../src/utils/dates';
 import { BarreProgression } from './index';
+
+type Onglet = 'etudes' | 'plans';
 
 export default function Etudier() {
   const { theme: t, etat } = useApp();
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const [onglet, setOnglet] = useState<Onglet>('etudes');
 
+  const enCours = etat.etudes.filter((e) => !e.terminee);
   const commences = plans.filter((p) => etat.progressions[p.id]);
   const nouveaux = plans.filter((p) => !etat.progressions[p.id]);
 
@@ -26,16 +41,89 @@ export default function Etudier() {
         paddingBottom: spacing.xxxl * 2,
       }}
       showsVerticalScrollIndicator={false}>
-      <Etiquette>Plans d’étude</Etiquette>
+      <Etiquette>Observation · Interprétation · Application</Etiquette>
       <Titre style={{ marginTop: spacing.sm }}>Étudier</Titre>
       <SousTitre style={{ marginTop: spacing.sm }}>
-        Chaque journée suit la même trame : lire le texte, méditer, répondre à trois
-        questions, prier, puis poser un acte.
+        Toute étude suit la méthode OIA : observer ce que le texte dit, comprendre ce
+        qu’il veut dire, décider ce qu’il change.
       </SousTitre>
 
-      {commences.length > 0 ? (
+      <Carte
+        accent
+        style={{ marginTop: spacing.lg }}
+        onPress={() => router.push('/oia/methode')}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
+          <View style={{ flexDirection: 'row', gap: 4 }}>
+            {['O', 'I', 'A'].map((l) => (
+              <View
+                key={l}
+                style={{
+                  width: 26,
+                  height: 26,
+                  borderRadius: radius.sm,
+                  backgroundColor: t.colors.primary,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}>
+                <Text style={{ color: t.colors.onPrimary, fontWeight: '800', fontSize: fontSize.sm }}>
+                  {l}
+                </Text>
+              </View>
+            ))}
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={{ color: t.colors.text, fontSize: fontSize.md, fontWeight: '700' }}>
+              La méthode, et un exemple travaillé
+            </Text>
+            <SousTitre style={{ marginTop: 1 }}>Luc 8:22-25, étudié pas à pas</SousTitre>
+          </View>
+        </View>
+      </Carte>
+
+      <Bouton
+        titre="Nouvelle étude OIA"
+        onPress={() => router.push('/oia/nouvelle')}
+        style={{ marginTop: spacing.md }}
+      />
+
+      <View style={{ flexDirection: 'row', gap: spacing.sm, marginTop: spacing.xl }}>
+        <Puce
+          texte={`Mes études (${etat.etudes.length})`}
+          actif={onglet === 'etudes'}
+          onPress={() => setOnglet('etudes')}
+        />
+        <Puce texte="Plans guidés" actif={onglet === 'plans'} onPress={() => setOnglet('plans')} />
+      </View>
+
+      {onglet === 'etudes' ? (
         <>
-          <Separateur label="En cours" />
+          {etat.etudes.length === 0 ? (
+            <Carte style={{ marginTop: spacing.lg }}>
+              <Text style={{ color: t.colors.text, fontSize: fontSize.lg, lineHeight: 26 }}>
+                Vous n’avez pas encore d’étude.
+              </Text>
+              <SousTitre style={{ marginTop: spacing.md }}>
+                Commencez par un plan guidé, qui vous donne le contexte et des pistes
+                d’observation, ou lancez une étude libre sur le passage de votre choix.
+              </SousTitre>
+            </Carte>
+          ) : null}
+
+          {enCours.length > 0 ? <Separateur label="En cours" /> : null}
+          {enCours.map((e) => (
+            <LigneEtude key={e.id} etude={e} onPress={() => router.push(`/oia/${e.id}`)} />
+          ))}
+
+          {etat.etudes.some((e) => e.terminee) ? <Separateur label="Terminées" /> : null}
+          {etat.etudes
+            .filter((e) => e.terminee)
+            .map((e) => (
+              <LigneEtude key={e.id} etude={e} onPress={() => router.push(`/oia/${e.id}`)} />
+            ))}
+        </>
+      ) : (
+        <>
+          {commences.length > 0 ? <Separateur label="Plans commencés" /> : null}
           {commences.map((p) => {
             const prog = etat.progressions[p.id];
             const termine = prog.joursTermines.length >= p.jours.length;
@@ -61,51 +149,113 @@ export default function Etudier() {
                 </View>
                 <BarreProgression valeur={prog.joursTermines.length / p.jours.length} />
                 <Text
-                  style={{
-                    color: t.colors.textFaint,
-                    fontSize: fontSize.xs,
-                    marginTop: spacing.sm,
-                  }}>
+                  style={{ color: t.colors.textFaint, fontSize: fontSize.xs, marginTop: spacing.sm }}>
                   {prog.joursTermines.length} / {p.jours.length} jours
                 </Text>
               </Carte>
             );
           })}
-        </>
-      ) : null}
 
-      <Separateur label={commences.length > 0 ? 'Autres plans' : 'Tous les plans'} />
+          <Separateur label={commences.length > 0 ? 'Autres plans' : 'Tous les plans'} />
 
-      {nouveaux.map((p) => (
-        <Carte
-          key={p.id}
-          style={{ marginBottom: spacing.md }}
-          onPress={() => router.push(`/plan/${p.id}`)}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
-            <Symbole symbole={p.symbole} />
-            <View style={{ flex: 1 }}>
-              <Text style={{ color: t.colors.text, fontSize: fontSize.lg, fontWeight: '700' }}>
-                {p.titre}
+          {nouveaux.map((p) => (
+            <Carte
+              key={p.id}
+              style={{ marginBottom: spacing.md }}
+              onPress={() => router.push(`/plan/${p.id}`)}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
+                <Symbole symbole={p.symbole} />
+                <View style={{ flex: 1 }}>
+                  <Text style={{ color: t.colors.text, fontSize: fontSize.lg, fontWeight: '700' }}>
+                    {p.titre}
+                  </Text>
+                  <SousTitre style={{ marginTop: 2 }}>{p.sousTitre}</SousTitre>
+                </View>
+              </View>
+              <Text
+                style={{
+                  color: t.colors.textMuted,
+                  fontSize: fontSize.md,
+                  lineHeight: 23,
+                  marginTop: spacing.md,
+                }}>
+                {p.description}
               </Text>
-              <SousTitre style={{ marginTop: 2 }}>{p.sousTitre}</SousTitre>
+              <View style={{ flexDirection: 'row', gap: spacing.sm, marginTop: spacing.md }}>
+                <Badge texte={p.niveau} />
+                <Badge texte={`${p.jours.length} jours`} />
+              </View>
+            </Carte>
+          ))}
+        </>
+      )}
+    </ScrollView>
+  );
+}
+
+function LigneEtude({ etude, onPress }: { etude: EtudeOIA; onPress: () => void }) {
+  const { theme: t } = useApp();
+  const parts: [string, number][] = [
+    ['O', progressionTemps(etude.observation, 'observation')],
+    ['I', progressionTemps(etude.interpretation, 'interpretation')],
+    ['A', progressionTemps(etude.application, 'application')],
+  ];
+  return (
+    <Carte style={{ marginBottom: spacing.sm }} onPress={onPress}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
+        <View style={{ flex: 1 }}>
+          <Text style={{ color: t.colors.text, fontSize: fontSize.lg, fontWeight: '700' }}>
+            {etude.reference}
+          </Text>
+          <Text style={{ color: t.colors.textFaint, fontSize: fontSize.xs, marginTop: 2 }}>
+            {etude.planId ? 'Plan guidé' : 'Étude libre'} · {dateCourte(etude.modifie.slice(0, 10))}
+          </Text>
+        </View>
+        {etude.terminee ? (
+          <View
+            style={{
+              width: 26,
+              height: 26,
+              borderRadius: 13,
+              backgroundColor: t.colors.success,
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}>
+            <IconeCoche couleur={t.colors.surface} taille={16} />
+          </View>
+        ) : null}
+      </View>
+      <View style={{ flexDirection: 'row', gap: spacing.sm, marginTop: spacing.md }}>
+        {parts.map(([lettre, valeur]) => (
+          <View key={lettre} style={{ flex: 1 }}>
+            <Text
+              style={{
+                color: valeur > 0 ? t.colors.primary : t.colors.textFaint,
+                fontSize: fontSize.xs,
+                fontWeight: '800',
+                marginBottom: 4,
+              }}>
+              {lettre}
+            </Text>
+            <View
+              style={{
+                height: 4,
+                borderRadius: 2,
+                backgroundColor: t.colors.surfaceAlt,
+                overflow: 'hidden',
+              }}>
+              <View
+                style={{
+                  width: `${Math.round(valeur * 100)}%`,
+                  height: '100%',
+                  backgroundColor: t.colors.accent,
+                }}
+              />
             </View>
           </View>
-          <Text
-            style={{
-              color: t.colors.textMuted,
-              fontSize: fontSize.md,
-              lineHeight: 23,
-              marginTop: spacing.md,
-            }}>
-            {p.description}
-          </Text>
-          <View style={{ flexDirection: 'row', gap: spacing.sm, marginTop: spacing.md }}>
-            <Badge texte={p.niveau} />
-            <Badge texte={`${p.jours.length} jours`} />
-          </View>
-        </Carte>
-      ))}
-    </ScrollView>
+        ))}
+      </View>
+    </Carte>
   );
 }
 

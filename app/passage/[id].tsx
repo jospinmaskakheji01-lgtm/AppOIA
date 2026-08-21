@@ -10,7 +10,7 @@ import { fontSize, spacing } from '../../src/theme/theme';
 
 export default function LecturePassage() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { theme: t, etat, basculerFavori } = useApp();
+  const { theme: t, etat, basculerFavori, creerEtude } = useApp();
   const router = useRouter();
   const passage = getPassage(String(id));
 
@@ -94,13 +94,22 @@ export default function LecturePassage() {
       </Text>
 
       <Bouton
-        titre="Méditer ce texte (lectio divina)"
-        onPress={() => router.push(`/meditation/lectio?passage=${passage.id}`)}
+        titre="Étudier ce texte avec la méthode OIA"
+        onPress={() => {
+          const etude = creerEtude({ reference: passage.reference, passageId: passage.id });
+          router.push(`/oia/${etude.id}`);
+        }}
         style={{ marginTop: spacing.xl }}
       />
       <Bouton
-        titre="Écrire dans le journal"
+        titre="Méditer ce texte (OIA guidé)"
         variante="secondaire"
+        onPress={() => router.push(`/meditation/oia?passage=${passage.id}`)}
+        style={{ marginTop: spacing.md }}
+      />
+      <Bouton
+        titre="Écrire dans le journal"
+        variante="discret"
         onPress={() =>
           router.push(`/journal/nouvelle?reference=${encodeURIComponent(passage.reference)}`)
         }

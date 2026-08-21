@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Alert, Platform, ScrollView, Switch, Text, TextInput, View } from 'react-native';
 
 import { Carte, Etiquette, Puce, Separateur, SousTitre, Statistique } from '../src/components/ui';
+import { fichesLivres } from '../src/data/livres';
 import { BIBLE_VERSION, passages } from '../src/data/passages';
 import { plans, totalJoursDisponibles } from '../src/data/plans';
 import { versets } from '../src/data/versets';
@@ -45,6 +46,7 @@ export default function Reglages() {
   };
 
   const versetsMemorises = etat.versetsMemorises.length;
+  const etudesTerminees = etat.etudes.filter((e) => e.terminee).length;
   const plansTermines = plans.filter(
     (p) => (etat.progressions[p.id]?.joursTermines.length ?? 0) >= p.jours.length,
   ).length;
@@ -79,9 +81,9 @@ export default function Reglages() {
           borderWidth: 1,
           borderColor: t.colors.border,
         }}>
+        <Statistique valeur={etudesTerminees} label="études OIA" />
         <Statistique valeur={plansTermines} label="plans terminés" />
         <Statistique valeur={versetsMemorises} label="versets mémorisés" />
-        <Statistique valeur={etat.journal.length} label="pages de journal" />
       </View>
 
       <Separateur label="Vous" />
@@ -183,8 +185,9 @@ export default function Reglages() {
             marginTop: spacing.sm,
           }}>
           Une application de méditation et d’étude biblique quotidienne, ancrée dans la foi
-          chrétienne. Tout le contenu fonctionne hors connexion et reste sur votre
-          appareil : rien n’est envoyé sur un serveur.
+          chrétienne. Toute l’étude suit la méthode OIA : Observation, Interprétation,
+          Application. Le contenu fonctionne hors connexion et reste sur votre appareil :
+          rien n’est envoyé sur un serveur.
         </Text>
         <Text
           style={{
@@ -193,8 +196,9 @@ export default function Reglages() {
             lineHeight: 21,
             marginTop: spacing.lg,
           }}>
-          {passages.length} passages · {versets.length} versets du jour · {plans.length} plans
-          d’étude ({totalJoursDisponibles} jours){'\n'}
+          {passages.length} passages · {fichesLivres.length} fiches de livres ·{' '}
+          {versets.length} versets du jour{'\n'}
+          {plans.length} plans guidés ({totalJoursDisponibles} journées OIA){'\n'}
           Texte biblique : {BIBLE_VERSION}
         </Text>
       </Carte>

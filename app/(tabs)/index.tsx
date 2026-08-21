@@ -15,8 +15,9 @@ import {
 } from '../../src/components/ui';
 import { seances } from '../../src/data/meditations';
 import { plans } from '../../src/data/plans';
+import { progressionTemps } from '../../src/data/oia';
 import { versetDuJour } from '../../src/data/versets';
-import { useApp } from '../../src/store/AppContext';
+import { EtudeOIA, useApp } from '../../src/store/AppContext';
 import { fontSize, radius, spacing } from '../../src/theme/theme';
 import { cleJour, dateLongue, salutation } from '../../src/utils/dates';
 
@@ -41,6 +42,14 @@ export default function Aujourdhui() {
       plan.jours.find((j) => !derniere.joursTermines.includes(j.jour)) ?? null;
     return { plan, progression: derniere, prochain };
   }, [etat.progressions]);
+
+  const etudeOuverte = useMemo(
+    () =>
+      etat.etudes
+        .filter((e) => !e.terminee)
+        .sort((a, b) => b.modifie.localeCompare(a.modifie))[0],
+    [etat.etudes],
+  );
 
   const seanceSuggeree = useMemo(() => {
     const h = new Date().getHours();
@@ -134,6 +143,24 @@ export default function Aujourdhui() {
 
       <Separateur label="Votre temps aujourd’hui" />
 
+      {etudeOuverte ? (
+        <Carte onPress={() => router.push(`/oia/${etudeOuverte.id}`)}>
+          <Etiquette>Reprendre mon étude OIA</Etiquette>
+          <Text
+            style={{
+              color: t.colors.text,
+              fontSize: fontSize.xl,
+              fontWeight: '700',
+              marginTop: spacing.sm,
+            }}>
+            {etudeOuverte.reference}
+          </Text>
+          <SousTitre style={{ marginTop: spacing.xs }}>
+            {etapeEnCours(etudeOuverte)}
+          </SousTitre>
+        </Carte>
+      ) : null}
+
       {enCours && enCours.prochain ? (
         <Carte
           onPress={() =>
@@ -158,8 +185,10 @@ export default function Aujourdhui() {
           />
         </Carte>
       ) : (
-        <Carte onPress={() => router.push('/(tabs)/etudier')}>
-          <Etiquette>Commencer un plan</Etiquette>
+        <Carte
+          style={{ marginTop: etudeOuverte ? spacing.md : 0 }}
+          onPress={() => router.push('/(tabs)/etudier')}>
+          <Etiquette>Commencer un plan guidé</Etiquette>
           <Text
             style={{
               color: t.colors.text,
@@ -172,6 +201,22 @@ export default function Aujourdhui() {
           <SousTitre style={{ marginTop: spacing.xs }}>{plans[0].sousTitre}</SousTitre>
         </Carte>
       )}
+
+      <Carte style={{ marginTop: spacing.md }} onPress={() => router.push('/oia/nouvelle')}>
+        <Etiquette>Étude libre</Etiquette>
+        <Text
+          style={{
+            color: t.colors.text,
+            fontSize: fontSize.xl,
+            fontWeight: '700',
+            marginTop: spacing.sm,
+          }}>
+          Étudier un passage avec la méthode OIA
+        </Text>
+        <SousTitre style={{ marginTop: spacing.xs }}>
+          Observer, interpréter, appliquer — sur le texte de votre choix
+        </SousTitre>
+      </Carte>
 
       <Carte
         style={{ marginTop: spacing.md }}
@@ -220,7 +265,7 @@ export default function Aujourdhui() {
             marginTop: spacing.xl,
             lineHeight: 20,
           }}>
-          Un temps d’étude, de méditation ou de journal valide votre journée.
+          Une étude OIA achevée, une méditation ou une page de journal valide votre journée.
         </Text>
       ) : (
         <View
@@ -244,6 +289,14 @@ export default function Aujourdhui() {
       )}
     </ScrollView>
   );
+}
+
+/** Le temps de la méthode où l'étude en est restée. */
+function etapeEnCours(etude: EtudeOIA): string {
+  if (progressionTemps(etude.observation, 'observation') < 1) return 'En cours — Observation';
+  if (progressionTemps(etude.interpretation, 'interpretation') < 1)
+    return 'En cours — Interprétation';
+  return 'En cours — Application';
 }
 
 export function BarreProgression({ valeur }: { valeur: number }) {

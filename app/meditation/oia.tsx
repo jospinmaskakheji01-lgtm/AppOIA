@@ -7,13 +7,13 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { IconeFleche } from '../../src/components/icons';
 import { Minuteur } from '../../src/components/respiration';
 import { Bouton, Carte, Etiquette } from '../../src/components/ui';
-import { etapesLectio } from '../../src/data/meditations';
+import { etapesMeditationOIA } from '../../src/data/meditations';
 import { getPassage, passages } from '../../src/data/passages';
 import { versetDuJour } from '../../src/data/versets';
 import { useApp } from '../../src/store/AppContext';
 import { fontSize, radius, spacing } from '../../src/theme/theme';
 
-export default function LectioDivina() {
+export default function MeditationOIA() {
   const { passage: passageParam } = useLocalSearchParams<{ passage?: string }>();
   const { theme: t, ajouterMeditation, etat } = useApp();
   const router = useRouter();
@@ -26,7 +26,7 @@ export default function LectioDivina() {
   }, [passageParam]);
 
   const [index, setIndex] = useState(0);
-  const [restant, setRestant] = useState(etapesLectio[0].duree);
+  const [restant, setRestant] = useState(etapesMeditationOIA[0].duree);
   const [enCours, setEnCours] = useState(false);
   const [fini, setFini] = useState(false);
 
@@ -43,20 +43,20 @@ export default function LectioDivina() {
     return () => clearInterval(timer);
   }, [enCours, fini]);
 
-  const etape = etapesLectio[index];
+  const etape = etapesMeditationOIA[index];
   const echelle = etat.reglages.tailleTexte;
 
   const suivant = () => {
-    if (index + 1 >= etapesLectio.length) {
+    if (index + 1 >= etapesMeditationOIA.length) {
       setFini(true);
-      const total = etapesLectio.reduce((n, e) => n + e.duree, 0);
+      const total = etapesMeditationOIA.reduce((n, e) => n + e.duree, 0);
       ajouterMeditation(Math.round(total / 60));
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
       return;
     }
     const i = index + 1;
     setIndex(i);
-    setRestant(etapesLectio[i].duree);
+    setRestant(etapesMeditationOIA[i].duree);
     setEnCours(false);
   };
 
@@ -82,7 +82,7 @@ export default function LectioDivina() {
           <IconeFleche couleur={t.colors.textMuted} taille={26} />
         </Pressable>
         <Text style={{ color: t.colors.textFaint, fontSize: fontSize.sm }}>
-          Lectio divina · {passage.reference}
+          Méditation OIA · {passage.reference}
         </Text>
       </View>
 
@@ -99,14 +99,14 @@ export default function LectioDivina() {
               marginTop: spacing.lg,
               lineHeight: 25,
             }}>
-            Vous avez traversé les quatre temps de la lecture priante. Notez, si vous le
-            voulez, le mot que vous emportez.
+            Vous avez traversé les trois temps de la méthode. Notez, si vous le voulez, ce
+            que vous emportez de ce texte.
           </Text>
           <Bouton
             titre="Écrire dans mon journal"
             onPress={() =>
               router.replace(
-                `/journal/nouvelle?reference=${encodeURIComponent(passage.reference)}&titre=${encodeURIComponent('Lectio divina')}`,
+                `/journal/nouvelle?reference=${encodeURIComponent(passage.reference)}&titre=${encodeURIComponent('Méditation OIA')}`,
               )
             }
             style={{ marginTop: spacing.xl, alignSelf: 'stretch' }}
@@ -121,7 +121,7 @@ export default function LectioDivina() {
       ) : (
         <>
           <View style={{ flexDirection: 'row', gap: spacing.sm, marginTop: spacing.lg }}>
-            {etapesLectio.map((e, i) => (
+            {etapesMeditationOIA.map((e, i) => (
               <View
                 key={e.cle}
                 style={{
@@ -134,7 +134,7 @@ export default function LectioDivina() {
             ))}
           </View>
 
-          <Etiquette>{etape.latin}</Etiquette>
+          <Etiquette>{etape.lettre} · Méditation OIA</Etiquette>
           <Text
             style={{
               color: t.colors.text,
@@ -175,7 +175,7 @@ export default function LectioDivina() {
             </Text>
           </Carte>
 
-          {index === 0 || index === 1 ? (
+          {index <= 1 ? (
             <View style={{ marginTop: spacing.xl }}>
               {passage.verses.map((v) => (
                 <View key={v.n} style={{ flexDirection: 'row', marginBottom: spacing.md }}>
@@ -217,15 +217,17 @@ export default function LectioDivina() {
                   textAlign: 'center',
                   lineHeight: 24,
                 }}>
-                {index === 2
-                  ? 'Le texte est mis de côté. C’est à vous de parler maintenant.'
-                  : 'Plus de texte, plus de mots. Restez simplement en présence.'}
+                Le texte est mis de côté. C’est à vous de répondre maintenant.
               </Text>
             </View>
           )}
 
           <Bouton
-            titre={index + 1 >= etapesLectio.length ? 'Achever la lectio' : `Passer à ${etapesLectio[index + 1].titre.toLowerCase()}`}
+            titre={
+              index + 1 >= etapesMeditationOIA.length
+                ? 'Achever la méditation'
+                : `Passer à ${etapesMeditationOIA[index + 1].titre.toLowerCase()}`
+            }
             variante="discret"
             onPress={suivant}
             style={{ marginTop: spacing.xl }}

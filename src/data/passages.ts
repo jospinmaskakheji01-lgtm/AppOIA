@@ -431,6 +431,20 @@ export const passages: Passage[] = [
     ],
   },
   {
+    id: 'lc8',
+    reference: 'Luc 8:22-25',
+    book: 'Luc',
+    testament: 'nouveau',
+    intro: `La tempête apaisée — le passage sur lequel la méthode OIA est démontrée pas à pas.`,
+    themes: ['foi', 'peur', 'autorité de Jésus'],
+    verses: [
+      { n: 22, t: `Un jour, Jésus monta dans une barque avec ses disciples. Il leur dit: Passons de l'autre côté du lac. Et ils partirent.` },
+      { n: 23, t: `Pendant qu'ils naviguaient, Jésus s'endormit. Un tourbillon fondit sur le lac, la barque se remplissait d'eau, et ils étaient en péril.` },
+      { n: 24, t: `Ils s'approchèrent et le réveillèrent, en disant: Maître, maître, nous périssons! S'étant réveillé, il menaça le vent et les flots, qui s'apaisèrent, et le calme revint.` },
+      { n: 25, t: `Puis il leur dit: Où est votre foi? Saisis de frayeur et d'étonnement, ils se dirent les uns aux autres: Quel est donc celui-ci, qui commande même au vent et à l'eau, et à qui ils obéissent?` },
+    ],
+  },
+  {
     id: 'lc11',
     reference: 'Luc 11:9-13',
     book: 'Luc',
