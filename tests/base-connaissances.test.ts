@@ -8,6 +8,8 @@ import {
   analyserReference,
   comparerVersions,
   commentairesPour,
+  conseilPourQuestion,
+  conseilsPour,
   dossierReference,
   enregistrerModule,
   enregistrerVersion,
@@ -18,9 +20,12 @@ import {
   rechercher,
   statistiquesBase,
   statistiquesVersion,
+  tousLesConseils,
   versionsDisponibles,
 } from '../src/knowledge';
 import { AssistantLocal } from '../src/knowledge/assistant';
+import { questionsApplication } from '../src/data/oia';
+import { genreDuLivre } from '../src/data/genres';
 
 let echecs = 0;
 function verifier(nom: string, condition: boolean, detail?: unknown): void {
@@ -129,6 +134,48 @@ async function principal(): Promise<void> {
     );
     verifier(`l'introduction à ${livre} est rattachée au livre`, commentaires.length > 0, commentaires.length);
   }
+
+  console.log('\nConseils de méthode');
+  const conseils = tousLesConseils();
+  verifier('des conseils sont enregistrés', conseils.length > 0, conseils.length);
+  verifier(
+    'chaque conseil cite une source connue',
+    conseils.every((c) => Boolean(getSource(c.sourceId))),
+    conseils.filter((c) => !getSource(c.sourceId)).map((c) => c.id),
+  );
+  verifier(
+    'les quatre ouvrages de méthode sont représentés',
+    new Set(conseils.map((c) => c.sourceId)).size >= 4,
+    [...new Set(conseils.map((c) => c.sourceId))],
+  );
+  for (const temps of ['observation', 'interpretation', 'application'] as const) {
+    verifier(`le temps « ${temps} » a des conseils`, conseilsPour(temps).length > 0);
+  }
+  // Un conseil rattaché à un genre ne doit pas déborder sur un autre genre.
+  const psaume = conseilsPour('interpretation', 'psaume');
+  const epitre = conseilsPour('interpretation', 'epitre');
+  verifier(
+    'les règles de genre ne se mélangent pas',
+    psaume.some((c) => c.genre === 'psaume') &&
+      epitre.some((c) => c.genre === 'epitre') &&
+      !psaume.some((c) => c.genre === 'epitre'),
+    { psaume: psaume.length, epitre: epitre.length },
+  );
+  verifier(
+    'sans genre, seuls les conseils généraux sont donnés',
+    conseilsPour('interpretation').every((c) => !c.genre),
+  );
+  verifier(
+    'le genre du livre est connu pour les Psaumes et pour Romains',
+    genreDuLivre('Psaumes') === 'psaume' && genreDuLivre('Romains') === 'epitre',
+    [genreDuLivre('Psaumes'), genreDuLivre('Romains')],
+  );
+  const sansConseil = questionsApplication.filter((q) => !conseilPourQuestion(q.cle));
+  verifier(
+    'chacune des neuf questions d’Application porte le commentaire de son auteur',
+    sansConseil.length === 0,
+    sansConseil.map((q) => q.cle),
+  );
 
   console.log('\nDossier de référence (exemple Jean 3:16)');
   const dossier = dossierReference({ livre: 'Jean', chapitre: 3, verset: 16 });

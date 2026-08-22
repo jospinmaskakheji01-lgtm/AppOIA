@@ -37,7 +37,8 @@ export default function Sources() {
       <Carte accent style={{ marginTop: spacing.lg }}>
         <SousTitre>
           {base.sources} sources · {base.entrees} entrées · {base.commentaires} commentaires ·{' '}
-          {base.referencesCroisees} références croisées · {base.themes} thèmes ·{' '}
+          {base.conseils} conseils de méthode · {base.referencesCroisees} références croisées ·{' '}
+          {base.themes} thèmes ·{' '}
           {versions.length} version{versions.length > 1 ? 's' : ''} biblique
           {versions.length > 1 ? 's' : ''}
         </SousTitre>

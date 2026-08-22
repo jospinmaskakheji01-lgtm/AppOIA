@@ -117,6 +117,13 @@ définitions côte à côte plutôt qu'une synthèse.
 **Les introductions d'Alfred Kuen** au Cantique des cantiques, à Job, aux Proverbes et à
 l'Ecclésiaste, rattachées à chacun de ces livres.
 
+**35 conseils de méthode** tirés des quatre ouvrages qui fondent la démarche : *Living By
+the Book* de Howard Hendricks — d'où viennent les trois temps et les neuf questions de
+l'Application —, *How to Read the Bible for All Its Worth* de Fee et Stuart pour les
+règles propres à chaque genre littéraire, et les deux ouvrages d'Alfred Kuen. Chacun
+renvoie à son chapitre. Ces livres sont de la prose sans marqueur exploitable : ils ont
+été lus plutôt qu'extraits par un analyseur, qui n'en aurait tiré que du bruit.
+
 S'y ajoutent 24 fiches de livres, plus de 200 commentaires, plus de 6 000 références
 bibliques extraites et normalisées, et le document de méthode OIA comme source citable.
 
@@ -132,6 +139,12 @@ bibliques extraites et normalisées, et le document de méthode OIA comme source
 - **Les pistes ne sont jamais des réponses.** Chaque question d'observation peut révéler
   un indice sur ce qu'il faut remarquer dans ce passage précis (« comptez combien de fois
   son nom revient », « repérez le pivot du v. 4 »).
+- **Les conseils de méthode accompagnent chaque temps**, repliés : on les ouvre quand on
+  bloque, on les referme pour écrire. À l'Interprétation, l'application ajoute les règles
+  propres au genre du livre étudié — un psaume ne reçoit pas les règles d'une épître. À
+  l'Application, chacune des neuf questions porte le commentaire de l'auteur dont elle
+  vient. Chaque conseil affiche son ouvrage et son chapitre : c'est un ouvrage qui parle,
+  jamais l'application.
 - **L'interprétation proposée reste verrouillée** tant que l'utilisateur n'a pas écrit la
   sienne. C'est un choix pédagogique : la méthode demande d'observer avant qu'on ne vous
   explique.

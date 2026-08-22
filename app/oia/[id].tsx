@@ -27,10 +27,16 @@ import {
   questionsInterpretation,
   questionsObservation,
 } from '../../src/data/oia';
+import { genreDuLivre, nomsGenres } from '../../src/data/genres';
 import { getPassage } from '../../src/data/passages';
 import { getJour } from '../../src/data/plans';
-import { analyserReference, dossierReference } from '../../src/knowledge';
-import { CarteEntree } from '../../src/components/oia-connaissance';
+import {
+  analyserReference,
+  conseilPourQuestion,
+  conseilsPour,
+  dossierReference,
+} from '../../src/knowledge';
+import { BlocConseils, CarteEntree } from '../../src/components/oia-connaissance';
 import { useApp } from '../../src/store/AppContext';
 import { fontSize, radius, spacing } from '../../src/theme/theme';
 
@@ -88,6 +94,26 @@ export default function AtelierOIA() {
     const ref = analyserReference(etude?.reference ?? '');
     return ref ? dossierReference(ref) : undefined;
   }, [etude?.reference]);
+
+  /**
+   * Le genre littéraire du livre étudié. Il commande les règles de lecture :
+   * un proverbe et une épître ne s'interprètent pas de la même manière.
+   */
+  const genre = useMemo(() => {
+    const ref = analyserReference(etude?.reference ?? '');
+    return ref ? genreDuLivre(ref.livre) : undefined;
+  }, [etude?.reference]);
+
+  /** Ce que les ouvrages de méthode disent du temps en cours. */
+  const conseils = useMemo(
+    () => ({
+      observation: conseilsPour('observation'),
+      interpretation: conseilsPour('interpretation', genre),
+      // Ceux qui visent une question précise sont montrés sous la question.
+      application: conseilsPour('application').filter((c) => !c.cleQuestion),
+    }),
+    [genre],
+  );
 
   const progressions = useMemo(
     () => ({
@@ -255,6 +281,10 @@ export default function AtelierOIA() {
         {temps === 'observation' ? (
           <>
             {fiche ? <CarteFicheLivre fiche={fiche} /> : null}
+            <BlocConseils
+              conseils={conseils.observation}
+              titre="Comment observer, selon les ouvrages de méthode"
+            />
             {dossier && dossier.entrees.length > 0 ? (
               <View style={{ marginBottom: spacing.lg }}>
                 <Etiquette>Mots et notions de ce passage</Etiquette>
@@ -309,6 +339,15 @@ export default function AtelierOIA() {
               </View>
             ) : null}
 
+            <BlocConseils
+              conseils={conseils.interpretation}
+              titre={
+                genre
+                  ? `Comment interpréter, et ce que demande ce genre (${nomsGenres[genre].toLowerCase()})`
+                  : 'Comment interpréter, selon les ouvrages de méthode'
+              }
+            />
+
             {questionsInterpretation.map((q) => (
               <ChampOIA
                 key={q.cle}
@@ -354,6 +393,11 @@ export default function AtelierOIA() {
           <>
             <SousTitre style={{ marginBottom: spacing.lg }}>{NOTE_APPLICATION}</SousTitre>
 
+            <BlocConseils
+              conseils={conseils.application}
+              titre="Ce que les ouvrages de méthode disent de l’application"
+            />
+
             {questionsApplication.map((q) => (
               <ChampOIA
                 key={q.cle}
@@ -362,6 +406,7 @@ export default function AtelierOIA() {
                 onChange={(v) => setApplication((o) => ({ ...o, [q.cle]: v }))}
                 onBlur={enregistrer}
                 piste={guide?.pistesApplication[q.cle]}
+                conseil={conseilPourQuestion(q.cle)}
                 hauteur={80}
               />
             ))}

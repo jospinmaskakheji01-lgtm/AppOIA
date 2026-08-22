@@ -17,12 +17,15 @@ import {
 import {
   AnomalieModule,
   Commentaire,
+  ConseilMethode,
   EntreeDictionnaire,
+  GenreLitteraire,
   ModuleConnaissance,
   MotOriginal,
   ReferenceBiblique,
   ReferenceCroisee,
   Source,
+  TempsOIA,
   ThemeBiblique,
 } from './types';
 
@@ -32,6 +35,7 @@ interface Etat {
   commentaires: Commentaire[];
   referencesCroisees: ReferenceCroisee[];
   themes: Map<string, ThemeBiblique>;
+  conseils: ConseilMethode[];
   /** terme normalisé → identifiants d'entrées */
   indexTermes: Map<string, Set<string>>;
   /** clé de verset → commentaires couvrant ce verset */
@@ -47,6 +51,7 @@ const etat: Etat = {
   commentaires: [],
   referencesCroisees: [],
   themes: new Map(),
+  conseils: [],
   indexTermes: new Map(),
   indexCommentaires: new Map(),
   indexEntreesParVerset: new Map(),
@@ -122,6 +127,23 @@ export function verifierModule(module: ModuleConnaissance): AnomalieModule[] {
       }
     }
   }
+  const sourcesConnues = new Set([
+    module.source?.id,
+    ...(module.sourcesAnnexes ?? []).map((s) => s.id),
+  ]);
+  for (const conseil of module.conseils ?? []) {
+    if (vus.has(conseil.id)) {
+      anomalies.push({ gravite: 'erreur', message: 'Identifiant de conseil en double.', element: conseil.id });
+    }
+    vus.add(conseil.id);
+    if (!sourcesConnues.has(conseil.sourceId)) {
+      anomalies.push({
+        gravite: 'avertissement',
+        message: 'Conseil attribué à une source que le module ne déclare pas.',
+        element: conseil.id,
+      });
+    }
+  }
   for (const c of module.commentaires ?? []) {
     if (c.sourceId !== module.source.id) {
       anomalies.push({
@@ -141,6 +163,8 @@ export function enregistrerModule(module: ModuleConnaissance): AnomalieModule[] 
 
   etat.modules.push(module.id);
   etat.sources.set(module.source.id, module.source);
+  for (const source of module.sourcesAnnexes ?? []) etat.sources.set(source.id, source);
+  etat.conseils.push(...(module.conseils ?? []));
 
   for (const entree of module.entrees ?? []) {
     const existante = etat.entrees.get(entree.id);
@@ -217,6 +241,28 @@ export function toutesLesEntrees(): EntreeDictionnaire[] {
 
 export function tousLesCommentaires(): Commentaire[] {
   return etat.commentaires;
+}
+
+/**
+ * Conseils de méthode pour un temps donné.
+ *
+ * Un conseil rattaché à un genre littéraire n'apparaît que pour un passage de
+ * ce genre : les règles de lecture d'une épître n'ont rien à dire d'un psaume.
+ * Les conseils sans genre valent pour tout passage et sont donnés en premier.
+ */
+export function conseilsPour(temps: TempsOIA, genre?: GenreLitteraire): ConseilMethode[] {
+  const generaux = etat.conseils.filter((c) => c.temps === temps && !c.genre);
+  const propres = genre ? etat.conseils.filter((c) => c.temps === temps && c.genre === genre) : [];
+  return [...generaux, ...propres];
+}
+
+/** Le conseil rattaché à une question précise de la méthode, s'il en existe un. */
+export function conseilPourQuestion(cleQuestion: string): ConseilMethode | undefined {
+  return etat.conseils.find((c) => c.cleQuestion === cleQuestion);
+}
+
+export function tousLesConseils(): ConseilMethode[] {
+  return [...etat.conseils];
 }
 
 export function tousLesThemes(): ThemeBiblique[] {
@@ -347,6 +393,7 @@ export function statistiquesBase(): {
   sources: number;
   entrees: number;
   commentaires: number;
+  conseils: number;
   referencesCroisees: number;
   themes: number;
 } {
@@ -355,6 +402,7 @@ export function statistiquesBase(): {
     sources: etat.sources.size,
     entrees: etat.entrees.size,
     commentaires: etat.commentaires.length,
+    conseils: etat.conseils.length,
     referencesCroisees: etat.referencesCroisees.length,
     themes: etat.themes.size,
   };
@@ -363,6 +411,7 @@ export function statistiquesBase(): {
 /** Réinitialise le registre — utilisé par les tests. */
 export function reinitialiserRegistre(): void {
   etat.sources.clear();
+  etat.conseils.length = 0;
   etat.entrees.clear();
   etat.commentaires.length = 0;
   etat.referencesCroisees.length = 0;

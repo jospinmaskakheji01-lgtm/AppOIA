@@ -4,6 +4,7 @@ import { Pressable, Text, View } from 'react-native';
 
 import {
   Commentaire,
+  ConseilMethode,
   EntreeDictionnaire,
   NatureContenu,
   Source,
@@ -252,5 +253,111 @@ export function CarteVersetResultat({
         {texte}
       </Text>
     </Pressable>
+  );
+}
+
+
+/**
+ * Un conseil de méthode, avec l'ouvrage et le chapitre d'où il vient.
+ *
+ * Ce n'est ni le texte biblique ni une synthèse : c'est ce qu'un auteur écrit
+ * sur la manière de lire. La pastille et l'attribution le disent explicitement.
+ */
+export function CarteConseil({ conseil }: { conseil: ConseilMethode }) {
+  const t = useTheme();
+  const source = getSource(conseil.sourceId);
+  const localisation = [
+    conseil.localisation?.chapitre ? `chap. ${conseil.localisation.chapitre}` : undefined,
+    conseil.localisation?.section,
+  ]
+    .filter(Boolean)
+    .join(', ');
+
+  return (
+    <View
+      style={{
+        backgroundColor: t.colors.surface,
+        borderRadius: radius.lg,
+        borderWidth: 1,
+        borderColor: t.colors.border,
+        padding: spacing.lg,
+        marginBottom: spacing.md,
+      }}>
+      <BadgeNature nature="source-documentaire" />
+      <Text
+        style={{
+          color: t.colors.text,
+          fontSize: fontSize.md,
+          fontWeight: '700',
+          marginTop: spacing.sm,
+        }}>
+        {conseil.titre}
+      </Text>
+      <Text
+        style={{
+          color: t.colors.textMuted,
+          fontSize: fontSize.sm,
+          lineHeight: 23,
+          marginTop: spacing.xs,
+        }}>
+        {conseil.texte}
+      </Text>
+      <LigneSource source={source} complement={localisation || undefined} />
+    </View>
+  );
+}
+
+/**
+ * Les conseils d'un temps, repliés par défaut.
+ *
+ * Repliés parce qu'ils accompagnent le travail sans le précéder : on ouvre
+ * quand on bloque, on referme quand on écrit.
+ */
+export function BlocConseils({
+  conseils,
+  titre,
+}: {
+  conseils: ConseilMethode[];
+  titre: string;
+}) {
+  const t = useTheme();
+  const [ouvert, setOuvert] = React.useState(false);
+  if (conseils.length === 0) return null;
+
+  return (
+    <View style={{ marginBottom: spacing.lg }}>
+      <Pressable
+        onPress={() => setOuvert((o) => !o)}
+        style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          backgroundColor: t.colors.surfaceAlt,
+          borderRadius: radius.md,
+          paddingVertical: spacing.md,
+          paddingHorizontal: spacing.lg,
+        }}>
+        <Text
+          style={{
+            color: t.colors.text,
+            fontSize: fontSize.sm,
+            fontWeight: '700',
+            flex: 1,
+            paddingRight: spacing.md,
+          }}>
+          {titre} ({conseils.length})
+        </Text>
+        <Text style={{ color: t.colors.accent, fontSize: fontSize.sm, fontWeight: '700' }}>
+          {ouvert ? 'Replier' : 'Ouvrir'}
+        </Text>
+      </Pressable>
+      {ouvert ? (
+        <View style={{ marginTop: spacing.md }}>
+          {conseils.map((c) => (
+            <CarteConseil key={c.id} conseil={c} />
+          ))}
+        </View>
+      ) : null}
+    </View>
   );
 }

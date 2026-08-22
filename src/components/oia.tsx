@@ -3,6 +3,7 @@ import { Pressable, Text, TextInput, View } from 'react-native';
 
 import { FicheLivre } from '../data/livres';
 import { QuestionOIA } from '../data/oia';
+import { ConseilMethode, getSource } from '../knowledge';
 import { useTheme } from '../store/AppContext';
 import { fontSize, radius, spacing } from '../theme/theme';
 
@@ -87,6 +88,7 @@ export function ChampOIA<C extends string>({
   onChange,
   onBlur,
   piste,
+  conseil,
   hauteur = 110,
 }: {
   question: QuestionOIA<C>;
@@ -95,10 +97,14 @@ export function ChampOIA<C extends string>({
   onBlur?: () => void;
   /** Indice propre au passage étudié, replié par défaut. */
   piste?: string;
+  /** Ce que l'auteur de la méthode écrit sur cette question précise. */
+  conseil?: ConseilMethode;
   hauteur?: number;
 }) {
   const t = useTheme();
   const [pisteOuverte, setPisteOuverte] = useState(false);
+  const [conseilOuvert, setConseilOuvert] = useState(false);
+  const sourceConseil = conseil ? getSource(conseil.sourceId) : undefined;
   const rempli = valeur.trim().length > 0;
 
   return (
@@ -179,6 +185,43 @@ export function ChampOIA<C extends string>({
               }}>
               <Text style={{ color: t.colors.text, fontSize: fontSize.sm, lineHeight: 22 }}>
                 {piste}
+              </Text>
+            </View>
+          ) : null}
+        </View>
+      ) : null}
+
+      {conseil ? (
+        <View style={{ marginTop: spacing.sm }}>
+          <Pressable onPress={() => setConseilOuvert((v) => !v)} hitSlop={6}>
+            <Text style={{ color: t.colors.textMuted, fontSize: fontSize.sm, fontWeight: '700' }}>
+              {conseilOuvert ? '− Masquer' : '+ Ce qu’en dit l’auteur de la méthode'}
+            </Text>
+          </Pressable>
+          {conseilOuvert ? (
+            <View
+              style={{
+                backgroundColor: t.colors.surfaceAlt,
+                borderRadius: radius.md,
+                padding: spacing.md,
+                marginTop: spacing.sm,
+              }}>
+              <Text style={{ color: t.colors.text, fontSize: fontSize.sm, lineHeight: 22 }}>
+                {conseil.texte}
+              </Text>
+              <Text
+                style={{
+                  color: t.colors.textFaint,
+                  fontSize: fontSize.xs,
+                  marginTop: spacing.sm,
+                }}>
+                {[
+                  sourceConseil?.titre,
+                  sourceConseil?.auteur,
+                  conseil.localisation?.chapitre ? `chap. ${conseil.localisation.chapitre}` : undefined,
+                ]
+                  .filter(Boolean)
+                  .join(' · ')}
               </Text>
             </View>
           ) : null}

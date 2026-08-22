@@ -82,6 +82,44 @@ chapitre hors plage.
 }
 ```
 
+### Un ouvrage de méthode
+
+Certains ouvrages n'apportent ni définitions ni commentaires de passage : ils disent
+comment lire. Ils se déclarent sous forme de **conseils**, rattachés à un temps de la
+méthode et, s'il y a lieu, à un genre littéraire.
+
+```json
+{
+  "module": { "id": "methode-sources-v1" },
+  "source": { "id": "living-by-the-book", "titre": "…", "type": "etude" },
+  "sourcesAnnexes": [{ "id": "how-to-read-the-bible", "titre": "…" }],
+  "conseils": [
+    { "id": "lbb-obs-repetition", "temps": "observation",
+      "titre": "Ce qui est répété", "texte": "…",
+      "sourceId": "living-by-the-book",
+      "localisation": { "chapitre": "20", "section": "Things That Are Repeated" } },
+    { "id": "hrb-psaume", "temps": "interpretation", "genre": "psaume",
+      "titre": "Des prières, avec un genre et une fonction", "texte": "…",
+      "sourceId": "how-to-read-the-bible",
+      "localisation": { "chapitre": "11" } },
+    { "id": "lbb-app-promesse", "temps": "application", "cleQuestion": "promesse",
+      "titre": "Une promesse à réclamer", "texte": "…",
+      "sourceId": "living-by-the-book",
+      "localisation": { "chapitre": "44" } }
+  ]
+}
+```
+
+- **`temps`** : `observation`, `interpretation` ou `application`.
+- **`genre`** : `recit`, `loi`, `psaume`, `sagesse`, `prophetie`, `evangile`, `parabole`,
+  `actes`, `epitre`, `apocalypse`. Un conseil qui porte un genre n'apparaît que sur un
+  passage de ce genre — les règles de lecture d'une épître n'ont rien à dire d'un psaume.
+  Le genre est déduit du livre par `genreDuLivre` (`src/data/genres.ts`).
+- **`cleQuestion`** rattache le conseil à une question précise de la méthode ; il
+  s'affiche alors sous cette question, replié.
+- **`sourcesAnnexes`** : un module de méthode peut rassembler plusieurs ouvrages, chaque
+  conseil gardant le sien. Le registre refuse un conseil dont la source n'est pas déclarée.
+
 Points importants :
 
 - **Les références s'écrivent librement.** L'importateur les normalise et refuse celles
@@ -134,6 +172,9 @@ Dès qu'un module est enregistré, son contenu apparaît :
 - dans le **dictionnaire** (`/dictionnaire/grace`), aux côtés des autres ouvrages ;
 - dans l'**atelier OIA**, où les notices aident à l'Observation et les commentaires
   s'ouvrent à l'Interprétation — après que l'utilisateur a écrit sa propre réponse ;
+- dans les **conseils de méthode** de l'atelier et de l'écran `/oia/methode`, repliés par
+  temps, filtrés par genre à l'Interprétation, et rattachés question par question à
+  l'Application ;
 - dans l'**assistant** (`/assistant`), comme contexte cité ;
 - dans l'écran **Sources** (`/sources`), avec sa fiche.
 

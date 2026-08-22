@@ -11,6 +11,7 @@ import { moduleparolevivante } from '../data/versions/parole-vivante';
 import { moduleDictionnaire } from '../data/modules/dictionnaire';
 import { modulepetitdictionnairebiblique } from '../data/modules/petit-dictionnaire-biblique';
 import { modulesagessevivanteintroductions } from '../data/modules/sagesse-vivante-introductions';
+import { moduleMethodeSources } from '../data/modules/methode-sources';
 import { moduleMethodeOIA, moduleRedaction } from '../data/modules/derive';
 import { enregistrerVersion, ModuleVersion } from './bible';
 import { enregistrerModule } from './registre';
@@ -26,6 +27,7 @@ const modulesConnaissance: ModuleConnaissance[] = [
   modulepetitdictionnairebiblique,
   modulesagessevivanteintroductions,
   moduleMethodeOIA,
+  moduleMethodeSources,
 ];
 
 export interface RapportAmorcage {

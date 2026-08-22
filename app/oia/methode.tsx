@@ -10,7 +10,10 @@ import {
   questionsInterpretation,
   questionsObservation,
 } from '../../src/data/oia';
+import { BlocConseils } from '../../src/components/oia-connaissance';
 import { getPassage } from '../../src/data/passages';
+import { conseilsPour, getSource } from '../../src/knowledge';
+import { SOURCE_HENDRICKS } from '../../src/data/modules/methode-sources';
 import { useApp } from '../../src/store/AppContext';
 import { fontSize, radius, spacing } from '../../src/theme/theme';
 
@@ -128,6 +131,17 @@ export default function Methode() {
               </View>
             );
           })}
+
+          <Separateur label="D’où vient cette méthode" />
+          <SousTitre style={{ marginBottom: spacing.lg }}>
+            Les trois temps, et les neuf questions de l’Application, viennent de
+            {' '}
+            {getSource(SOURCE_HENDRICKS)?.titre ?? 'Living By the Book'}. Ce que ces
+            ouvrages écrivent sur chaque temps est repris ici, chapitre par chapitre.
+          </SousTitre>
+          <BlocConseils conseils={conseilsPour('observation')} titre="Sur l’Observation" />
+          <BlocConseils conseils={conseilsPour('interpretation')} titre="Sur l’Interprétation" />
+          <BlocConseils conseils={conseilsPour('application')} titre="Sur l’Application" />
         </>
       ) : (
         <>

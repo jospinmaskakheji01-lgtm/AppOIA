@@ -198,6 +198,47 @@ export interface ThemeBiblique {
 }
 
 // ————————————————————————————————————————————————————————————
+// Conseils de méthode
+// ————————————————————————————————————————————————————————————
+
+export type TempsOIA = 'observation' | 'interpretation' | 'application';
+
+/**
+ * Genres littéraires de l'Écriture. Un même principe d'interprétation ne
+ * s'applique pas à un proverbe et à une épître : le genre conditionne la
+ * lecture, et les conseils qui en dépendent portent cette étiquette.
+ */
+export type GenreLitteraire =
+  | 'recit'
+  | 'loi'
+  | 'psaume'
+  | 'sagesse'
+  | 'prophetie'
+  | 'evangile'
+  | 'parabole'
+  | 'actes'
+  | 'epitre'
+  | 'apocalypse';
+
+/**
+ * Ce qu'un ouvrage de méthode enseigne sur l'un des trois temps.
+ * Ces conseils accompagnent l'utilisateur pendant son étude, à l'endroit où
+ * ils servent — et non dans un chapitre séparé qu'il ne lirait pas.
+ */
+export interface ConseilMethode {
+  id: string;
+  temps: TempsOIA;
+  /** Renseigné quand le conseil ne vaut que pour un genre littéraire. */
+  genre?: GenreLitteraire;
+  titre: string;
+  texte: string;
+  /** Rattache le conseil à l'une des questions de la méthode. */
+  cleQuestion?: string;
+  sourceId: string;
+  localisation?: Localisation;
+}
+
+// ————————————————————————————————————————————————————————————
 // Modules
 // ————————————————————————————————————————————————————————————
 
@@ -209,8 +250,15 @@ export interface ModuleConnaissance {
   id: string;
   /** La source dont ce module extrait sa connaissance. */
   source: Source;
+  /**
+   * Sources supplémentaires citées par ce module. Un module de méthode
+   * rassemble plusieurs ouvrages ; chaque conseil garde la sienne, et le
+   * registre doit les connaître pour pouvoir les afficher.
+   */
+  sourcesAnnexes?: Source[];
   entrees?: EntreeDictionnaire[];
   commentaires?: Commentaire[];
+  conseils?: ConseilMethode[];
   referencesCroisees?: ReferenceCroisee[];
   themes?: ThemeBiblique[];
   /** Version que ce module installe, pour les modules de type « bible ». */
