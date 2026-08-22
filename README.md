@@ -107,9 +107,18 @@ Le déroulé complet et les formats d'entrée sont dans
 ### Contenu actuel
 
 **Quatre versions bibliques.** Deux Bibles entières — Louis Segond 1910 (31 102 versets,
-les 66 livres) et Parole de Vie (24 077 blocs, français fondamental) — et deux
+les 66 livres) et Parole de Vie (27 015 blocs, français fondamental) — et deux
 transpositions d'Alfred Kuen : Parole Vivante pour le Nouveau Testament (7 952 versets)
 et Louange vivante pour les 150 psaumes.
+
+**Le canon est le canon long, de 75 livres.** Aux 66 livres s'ajoutent les neuf livres
+deutérocanoniques — Tobie, Judith, Esther grec, 1 et 2 Maccabées, la Sagesse, le
+Siracide, Baruch, la Lettre de Jérémie — ainsi que Daniel 13 et 14, où se lisent Suzanne
+et Bel, et les additions grecques de Daniel 3. Ils sont reçus comme canoniques par les
+Églises catholique et orthodoxe, et tenus pour utiles à lire sans être canoniques par les
+Églises issues de la Réforme : le dossier d'un passage le dit, plutôt que de trancher.
+Parole de Vie les installe ; les autres versions ne les contiennent pas, et sont
+signalées absentes du passage, comme partout ailleurs.
 
 Les quatre partagent la numérotation de la Segond, ce qui n'allait pas de soi : Kuen
 compte la suscription d'un psaume comme premier verset, et Parole de Vie rend souvent

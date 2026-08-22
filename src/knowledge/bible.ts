@@ -195,7 +195,12 @@ export function rechercherDansTexte(
       }
       // Couvrir tous les termes vaut bien davantage que les cumuler sur un seul.
       if (couverts > 0) score += couverts * 4 + (couverts === termes.length ? 12 : 0);
-      if (chercherPhrase && couverts > 0 && texte.includes(phrase)) score += 60;
+      // Retrouver mot pour mot ce que l'utilisateur a tapé dans un verset est
+      // le résultat le plus sûr qu'une recherche biblique puisse donner : le
+      // bonus doit dépasser le plancher des autres natures, sans quoi une
+      // notice de dictionnaire qui partage un seul mot passerait devant le
+      // verset cité.
+      if (chercherPhrase && couverts > 0 && texte.includes(phrase)) score += 220;
       if (score > 0) {
         resultats.push({
           version: chargee.version,

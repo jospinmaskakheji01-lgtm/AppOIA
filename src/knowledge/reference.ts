@@ -10,7 +10,13 @@ import { ReferenceBiblique } from './types';
 export interface LivreCanonique {
   nom: string;
   abreviation: string;
-  testament: 'ancien' | 'nouveau';
+  /**
+   * Corpus auquel le livre appartient. Les livres deutérocanoniques sont
+   * reçus comme canoniques par les Églises catholique et orthodoxe, et tenus
+   * pour utiles sans être canoniques par les Églises issues de la Réforme.
+   * Les distinguer permet à l'application de les présenter sans trancher.
+   */
+  testament: 'ancien' | 'deuterocanonique' | 'nouveau';
   /** Rang canonique, pour trier les résultats dans l'ordre de la Bible. */
   rang: number;
   chapitres: number;
@@ -35,59 +41,94 @@ export const livresCanoniques: LivreCanonique[] = [
   { nom: '2 Chroniques', abreviation: '2 Ch', testament: 'ancien', rang: 14, chapitres: 36, alias: ['2 chroniques', '2ch', '2 chr', '2 ch', '2chr', 'ii chr'] },
   { nom: 'Esdras', abreviation: 'Esd', testament: 'ancien', rang: 15, chapitres: 10, alias: ['esdras', 'esd'] },
   { nom: 'Néhémie', abreviation: 'Né', testament: 'ancien', rang: 16, chapitres: 13, alias: ['nehemie', 'ne', 'neh', 'nehe'] },
-  { nom: 'Esther', abreviation: 'Est', testament: 'ancien', rang: 17, chapitres: 10, alias: ['esther', 'est', 'esth'] },
-  { nom: 'Job', abreviation: 'Jb', testament: 'ancien', rang: 18, chapitres: 42, alias: ['job', 'jb'] },
-  { nom: 'Psaumes', abreviation: 'Ps', testament: 'ancien', rang: 19, chapitres: 150, alias: ['psaumes', 'psaume', 'ps', 'psa', 'psau', 'psalm'] },
-  { nom: 'Proverbes', abreviation: 'Pr', testament: 'ancien', rang: 20, chapitres: 31, alias: ['proverbes', 'pr', 'prov', 'pro'] },
-  { nom: 'Ecclésiaste', abreviation: 'Ec', testament: 'ancien', rang: 21, chapitres: 12, alias: ['ecclesiaste', 'ec', 'eccl', 'qohelet', 'ecc', 'eccle', 'qoh'] },
-  { nom: 'Cantique des cantiques', abreviation: 'Ct', testament: 'ancien', rang: 22, chapitres: 8, alias: ['cantique des cantiques', 'cantique', 'ct', 'cant', 'cantiques', 'cant des cant'] },
-  { nom: 'Ésaïe', abreviation: 'És', testament: 'ancien', rang: 23, chapitres: 66, alias: ['esaie', 'es', 'isaie', 'is', 'esa', 'isa'] },
-  { nom: 'Jérémie', abreviation: 'Jr', testament: 'ancien', rang: 24, chapitres: 52, alias: ['jeremie', 'jr', 'jer', 'jere'] },
-  { nom: 'Lamentations', abreviation: 'Lm', testament: 'ancien', rang: 25, chapitres: 5, alias: ['lamentations', 'lm', 'lam', 'lament', 'lamentations de jeremie'] },
-  { nom: 'Ézéchiel', abreviation: 'Éz', testament: 'ancien', rang: 26, chapitres: 48, alias: ['ezechiel', 'ez', 'eze', 'ezech'] },
-  { nom: 'Daniel', abreviation: 'Dn', testament: 'ancien', rang: 27, chapitres: 12, alias: ['daniel', 'dn', 'dan', 'da'] },
-  { nom: 'Osée', abreviation: 'Os', testament: 'ancien', rang: 28, chapitres: 14, alias: ['osee', 'os', 'ose'] },
-  { nom: 'Joël', abreviation: 'Jl', testament: 'ancien', rang: 29, chapitres: 3, alias: ['joel', 'jl', 'joe'] },
-  { nom: 'Amos', abreviation: 'Am', testament: 'ancien', rang: 30, chapitres: 9, alias: ['amos', 'am', 'amo'] },
-  { nom: 'Abdias', abreviation: 'Ab', testament: 'ancien', rang: 31, chapitres: 1, alias: ['abdias', 'ab'] },
-  { nom: 'Jonas', abreviation: 'Jon', testament: 'ancien', rang: 32, chapitres: 4, alias: ['jonas', 'jon'] },
-  { nom: 'Michée', abreviation: 'Mi', testament: 'ancien', rang: 33, chapitres: 7, alias: ['michee', 'mi', 'mic', 'mich'] },
-  { nom: 'Nahum', abreviation: 'Na', testament: 'ancien', rang: 34, chapitres: 3, alias: ['nahum', 'na', 'nah'] },
-  { nom: 'Habacuc', abreviation: 'Ha', testament: 'ancien', rang: 35, chapitres: 3, alias: ['habacuc', 'ha', 'hab', 'habac', 'habakuk', 'habakkuk'] },
-  { nom: 'Sophonie', abreviation: 'So', testament: 'ancien', rang: 36, chapitres: 3, alias: ['sophonie', 'so', 'soph', 'sop'] },
-  { nom: 'Aggée', abreviation: 'Ag', testament: 'ancien', rang: 37, chapitres: 2, alias: ['aggee', 'ag', 'agg'] },
-  { nom: 'Zacharie', abreviation: 'Za', testament: 'ancien', rang: 38, chapitres: 14, alias: ['zacharie', 'za', 'zach', 'zac'] },
-  { nom: 'Malachie', abreviation: 'Ml', testament: 'ancien', rang: 39, chapitres: 4, alias: ['malachie', 'ml', 'mal', 'mala'] },
-  { nom: 'Matthieu', abreviation: 'Mt', testament: 'nouveau', rang: 40, chapitres: 28, alias: ['matthieu', 'mt', 'matt', 'mat'] },
-  { nom: 'Marc', abreviation: 'Mc', testament: 'nouveau', rang: 41, chapitres: 16, alias: ['marc', 'mc', 'mar'] },
-  { nom: 'Luc', abreviation: 'Lc', testament: 'nouveau', rang: 42, chapitres: 24, alias: ['luc', 'lc'] },
-  { nom: 'Jean', abreviation: 'Jn', testament: 'nouveau', rang: 43, chapitres: 21, alias: ['jean', 'jn'] },
-  { nom: 'Actes', abreviation: 'Ac', testament: 'nouveau', rang: 44, chapitres: 28, alias: ['actes', 'ac', 'act', 'actes des apotres'] },
-  { nom: 'Romains', abreviation: 'Rm', testament: 'nouveau', rang: 45, chapitres: 16, alias: ['romains', 'rm', 'rom', 'ro'] },
-  { nom: '1 Corinthiens', abreviation: '1 Co', testament: 'nouveau', rang: 46, chapitres: 16, alias: ['1 corinthiens', '1co', '1 cor', 'i corinthiens', '1 co', '1cor', 'i cor'] },
-  { nom: '2 Corinthiens', abreviation: '2 Co', testament: 'nouveau', rang: 47, chapitres: 13, alias: ['2 corinthiens', '2co', '2 cor', 'ii corinthiens', '2 co', '2cor', 'ii cor'] },
-  { nom: 'Galates', abreviation: 'Ga', testament: 'nouveau', rang: 48, chapitres: 6, alias: ['galates', 'ga', 'gal'] },
-  { nom: 'Éphésiens', abreviation: 'Ép', testament: 'nouveau', rang: 49, chapitres: 6, alias: ['ephesiens', 'ep', 'eph', 'ephes', 'esiens'] },
-  { nom: 'Philippiens', abreviation: 'Ph', testament: 'nouveau', rang: 50, chapitres: 4, alias: ['philippiens', 'ph', 'phil', 'php'] },
-  { nom: 'Colossiens', abreviation: 'Col', testament: 'nouveau', rang: 51, chapitres: 4, alias: ['colossiens', 'col'] },
-  { nom: '1 Thessaloniciens', abreviation: '1 Th', testament: 'nouveau', rang: 52, chapitres: 5, alias: ['1 thessaloniciens', '1th', '1 thess', '1 th', '1thess', '1 thes'] },
-  { nom: '2 Thessaloniciens', abreviation: '2 Th', testament: 'nouveau', rang: 53, chapitres: 3, alias: ['2 thessaloniciens', '2th', '2 thess', '2 th', '2thess', '2 thes'] },
-  { nom: '1 Timothée', abreviation: '1 Tm', testament: 'nouveau', rang: 54, chapitres: 6, alias: ['1 timothee', '1tm', '1 tim', '1tim'] },
-  { nom: '2 Timothée', abreviation: '2 Tm', testament: 'nouveau', rang: 55, chapitres: 4, alias: ['2 timothee', '2tm', '2 tim', '2tim'] },
-  { nom: 'Tite', abreviation: 'Tt', testament: 'nouveau', rang: 56, chapitres: 3, alias: ['tite', 'tt', 'tit'] },
-  { nom: 'Philémon', abreviation: 'Phm', testament: 'nouveau', rang: 57, chapitres: 1, alias: ['philemon', 'phm', 'philem'] },
-  { nom: 'Hébreux', abreviation: 'Hé', testament: 'nouveau', rang: 58, chapitres: 13, alias: ['hebreux', 'he', 'heb', 'hebr'] },
-  { nom: 'Jacques', abreviation: 'Jc', testament: 'nouveau', rang: 59, chapitres: 5, alias: ['jacques', 'jc', 'jac', 'jacq'] },
-  { nom: '1 Pierre', abreviation: '1 P', testament: 'nouveau', rang: 60, chapitres: 5, alias: ['1 pierre', '1p', 'i pierre', '1 pi', '1pi', '1 p', '1 pier'] },
-  { nom: '2 Pierre', abreviation: '2 P', testament: 'nouveau', rang: 61, chapitres: 3, alias: ['2 pierre', '2p', 'ii pierre', '2 pi', '2pi', '2 p', '2 pier'] },
-  { nom: '1 Jean', abreviation: '1 Jn', testament: 'nouveau', rang: 62, chapitres: 5, alias: ['1 jean', '1jn', 'i jean', '1 jn'] },
-  { nom: '2 Jean', abreviation: '2 Jn', testament: 'nouveau', rang: 63, chapitres: 1, alias: ['2 jean', '2jn', 'ii jean', '2 jn'] },
-  { nom: '3 Jean', abreviation: '3 Jn', testament: 'nouveau', rang: 64, chapitres: 1, alias: ['3 jean', '3jn', 'iii jean', '3 jn'] },
-  { nom: 'Jude', abreviation: 'Jud', testament: 'nouveau', rang: 65, chapitres: 1, alias: ['jude', 'jud', 'jd'] },
-  { nom: 'Apocalypse', abreviation: 'Ap', testament: 'nouveau', rang: 66, chapitres: 22, alias: ['apocalypse', 'ap', 'apoc', 'revelation', 'apo', 'rev'] },
+  { nom: 'Tobie', abreviation: 'Tb', testament: 'deuterocanonique', rang: 17, chapitres: 14, alias: ['tobie', 'tb', 'tob', 'tobit'] },
+  { nom: 'Judith', abreviation: 'Jdt', testament: 'deuterocanonique', rang: 18, chapitres: 16, alias: ['judith', 'jdt', 'jud'] },
+  { nom: 'Esther', abreviation: 'Est', testament: 'ancien', rang: 19, chapitres: 10, alias: ['esther', 'est', 'esth'] },
+  { nom: 'Esther grec', abreviation: 'Estgr', testament: 'deuterocanonique', rang: 20, chapitres: 16, alias: ['esther grec', 'estgr', 'est gr', 'est grec', 'esther gr'] },
+  { nom: '1 Maccabées', abreviation: '1 M', testament: 'deuterocanonique', rang: 21, chapitres: 16, alias: ['1 maccabees', '1m', '1 mac', '1 macc', 'i maccabees', '1 maccabee'] },
+  { nom: '2 Maccabées', abreviation: '2 M', testament: 'deuterocanonique', rang: 22, chapitres: 15, alias: ['2 maccabees', '2m', '2 mac', '2 macc', 'ii maccabees', '2 maccabee'] },
+  { nom: 'Job', abreviation: 'Jb', testament: 'ancien', rang: 23, chapitres: 42, alias: ['job', 'jb'] },
+  { nom: 'Psaumes', abreviation: 'Ps', testament: 'ancien', rang: 24, chapitres: 150, alias: ['psaumes', 'psaume', 'ps', 'psa', 'psau', 'psalm'] },
+  { nom: 'Proverbes', abreviation: 'Pr', testament: 'ancien', rang: 25, chapitres: 31, alias: ['proverbes', 'pr', 'prov', 'pro'] },
+  { nom: 'Ecclésiaste', abreviation: 'Ec', testament: 'ancien', rang: 26, chapitres: 12, alias: ['ecclesiaste', 'ec', 'eccl', 'qohelet', 'ecc', 'eccle', 'qoh'] },
+  { nom: 'Cantique des cantiques', abreviation: 'Ct', testament: 'ancien', rang: 27, chapitres: 8, alias: ['cantique des cantiques', 'cantique', 'ct', 'cant', 'cantiques', 'cant des cant'] },
+  { nom: 'Sagesse', abreviation: 'Sg', testament: 'deuterocanonique', rang: 28, chapitres: 19, alias: ['sagesse', 'sg', 'sag', 'sagesse de salomon'] },
+  { nom: 'Siracide', abreviation: 'Si', testament: 'deuterocanonique', rang: 29, chapitres: 51, alias: ['siracide', 'si', 'sir', 'sirac', 'ecclesiastique', 'ben sira'] },
+  { nom: 'Ésaïe', abreviation: 'És', testament: 'ancien', rang: 30, chapitres: 66, alias: ['esaie', 'es', 'isaie', 'is', 'esa', 'isa'] },
+  { nom: 'Jérémie', abreviation: 'Jr', testament: 'ancien', rang: 31, chapitres: 52, alias: ['jeremie', 'jr', 'jer', 'jere'] },
+  { nom: 'Lamentations', abreviation: 'Lm', testament: 'ancien', rang: 32, chapitres: 5, alias: ['lamentations', 'lm', 'lam', 'lament', 'lamentations de jeremie'] },
+  { nom: 'Baruch', abreviation: 'Ba', testament: 'deuterocanonique', rang: 33, chapitres: 5, alias: ['baruch', 'ba', 'bar', 'baruc'] },
+  { nom: 'Ézéchiel', abreviation: 'Éz', testament: 'ancien', rang: 34, chapitres: 48, alias: ['ezechiel', 'ez', 'eze', 'ezech'] },
+  { nom: 'Daniel', abreviation: 'Dn', testament: 'ancien', rang: 35, chapitres: 14, alias: ['daniel', 'dn', 'dan', 'da'] },
+  { nom: 'Osée', abreviation: 'Os', testament: 'ancien', rang: 36, chapitres: 14, alias: ['osee', 'os', 'ose'] },
+  { nom: 'Joël', abreviation: 'Jl', testament: 'ancien', rang: 37, chapitres: 3, alias: ['joel', 'jl', 'joe'] },
+  { nom: 'Amos', abreviation: 'Am', testament: 'ancien', rang: 38, chapitres: 9, alias: ['amos', 'am', 'amo'] },
+  { nom: 'Abdias', abreviation: 'Ab', testament: 'ancien', rang: 39, chapitres: 1, alias: ['abdias', 'ab'] },
+  { nom: 'Jonas', abreviation: 'Jon', testament: 'ancien', rang: 40, chapitres: 4, alias: ['jonas', 'jon'] },
+  { nom: 'Michée', abreviation: 'Mi', testament: 'ancien', rang: 41, chapitres: 7, alias: ['michee', 'mi', 'mic', 'mich'] },
+  { nom: 'Nahum', abreviation: 'Na', testament: 'ancien', rang: 42, chapitres: 3, alias: ['nahum', 'na', 'nah'] },
+  { nom: 'Habacuc', abreviation: 'Ha', testament: 'ancien', rang: 43, chapitres: 3, alias: ['habacuc', 'ha', 'hab', 'habac', 'habakuk', 'habakkuk'] },
+  { nom: 'Sophonie', abreviation: 'So', testament: 'ancien', rang: 44, chapitres: 3, alias: ['sophonie', 'so', 'soph', 'sop'] },
+  { nom: 'Aggée', abreviation: 'Ag', testament: 'ancien', rang: 45, chapitres: 2, alias: ['aggee', 'ag', 'agg'] },
+  { nom: 'Zacharie', abreviation: 'Za', testament: 'ancien', rang: 46, chapitres: 14, alias: ['zacharie', 'za', 'zach', 'zac'] },
+  { nom: 'Malachie', abreviation: 'Ml', testament: 'ancien', rang: 47, chapitres: 4, alias: ['malachie', 'ml', 'mal', 'mala'] },
+  { nom: 'Lettre de Jérémie', abreviation: 'LtJr', testament: 'deuterocanonique', rang: 48, chapitres: 1, alias: ['lettre de jeremie', 'ltjr', 'lt jr', 'letjer', 'epitre de jeremie'] },
+  { nom: 'Matthieu', abreviation: 'Mt', testament: 'nouveau', rang: 49, chapitres: 28, alias: ['matthieu', 'mt', 'matt', 'mat'] },
+  { nom: 'Marc', abreviation: 'Mc', testament: 'nouveau', rang: 50, chapitres: 16, alias: ['marc', 'mc', 'mar'] },
+  { nom: 'Luc', abreviation: 'Lc', testament: 'nouveau', rang: 51, chapitres: 24, alias: ['luc', 'lc'] },
+  { nom: 'Jean', abreviation: 'Jn', testament: 'nouveau', rang: 52, chapitres: 21, alias: ['jean', 'jn'] },
+  { nom: 'Actes', abreviation: 'Ac', testament: 'nouveau', rang: 53, chapitres: 28, alias: ['actes', 'ac', 'act', 'actes des apotres'] },
+  { nom: 'Romains', abreviation: 'Rm', testament: 'nouveau', rang: 54, chapitres: 16, alias: ['romains', 'rm', 'rom', 'ro'] },
+  { nom: '1 Corinthiens', abreviation: '1 Co', testament: 'nouveau', rang: 55, chapitres: 16, alias: ['1 corinthiens', '1co', '1 cor', 'i corinthiens', '1 co', '1cor', 'i cor'] },
+  { nom: '2 Corinthiens', abreviation: '2 Co', testament: 'nouveau', rang: 56, chapitres: 13, alias: ['2 corinthiens', '2co', '2 cor', 'ii corinthiens', '2 co', '2cor', 'ii cor'] },
+  { nom: 'Galates', abreviation: 'Ga', testament: 'nouveau', rang: 57, chapitres: 6, alias: ['galates', 'ga', 'gal'] },
+  { nom: 'Éphésiens', abreviation: 'Ép', testament: 'nouveau', rang: 58, chapitres: 6, alias: ['ephesiens', 'ep', 'eph', 'ephes', 'esiens'] },
+  { nom: 'Philippiens', abreviation: 'Ph', testament: 'nouveau', rang: 59, chapitres: 4, alias: ['philippiens', 'ph', 'phil', 'php'] },
+  { nom: 'Colossiens', abreviation: 'Col', testament: 'nouveau', rang: 60, chapitres: 4, alias: ['colossiens', 'col'] },
+  { nom: '1 Thessaloniciens', abreviation: '1 Th', testament: 'nouveau', rang: 61, chapitres: 5, alias: ['1 thessaloniciens', '1th', '1 thess', '1 th', '1thess', '1 thes'] },
+  { nom: '2 Thessaloniciens', abreviation: '2 Th', testament: 'nouveau', rang: 62, chapitres: 3, alias: ['2 thessaloniciens', '2th', '2 thess', '2 th', '2thess', '2 thes'] },
+  { nom: '1 Timothée', abreviation: '1 Tm', testament: 'nouveau', rang: 63, chapitres: 6, alias: ['1 timothee', '1tm', '1 tim', '1tim'] },
+  { nom: '2 Timothée', abreviation: '2 Tm', testament: 'nouveau', rang: 64, chapitres: 4, alias: ['2 timothee', '2tm', '2 tim', '2tim'] },
+  { nom: 'Tite', abreviation: 'Tt', testament: 'nouveau', rang: 65, chapitres: 3, alias: ['tite', 'tt', 'tit'] },
+  { nom: 'Philémon', abreviation: 'Phm', testament: 'nouveau', rang: 66, chapitres: 1, alias: ['philemon', 'phm', 'philem'] },
+  { nom: 'Hébreux', abreviation: 'Hé', testament: 'nouveau', rang: 67, chapitres: 13, alias: ['hebreux', 'he', 'heb', 'hebr'] },
+  { nom: 'Jacques', abreviation: 'Jc', testament: 'nouveau', rang: 68, chapitres: 5, alias: ['jacques', 'jc', 'jac', 'jacq'] },
+  { nom: '1 Pierre', abreviation: '1 P', testament: 'nouveau', rang: 69, chapitres: 5, alias: ['1 pierre', '1p', 'i pierre', '1 pi', '1pi', '1 p', '1 pier'] },
+  { nom: '2 Pierre', abreviation: '2 P', testament: 'nouveau', rang: 70, chapitres: 3, alias: ['2 pierre', '2p', 'ii pierre', '2 pi', '2pi', '2 p', '2 pier'] },
+  { nom: '1 Jean', abreviation: '1 Jn', testament: 'nouveau', rang: 71, chapitres: 5, alias: ['1 jean', '1jn', 'i jean', '1 jn'] },
+  { nom: '2 Jean', abreviation: '2 Jn', testament: 'nouveau', rang: 72, chapitres: 1, alias: ['2 jean', '2jn', 'ii jean', '2 jn'] },
+  { nom: '3 Jean', abreviation: '3 Jn', testament: 'nouveau', rang: 73, chapitres: 1, alias: ['3 jean', '3jn', 'iii jean', '3 jn'] },
+  { nom: 'Jude', abreviation: 'Jud', testament: 'nouveau', rang: 74, chapitres: 1, alias: ['jude', 'jud', 'jd'] },
+  { nom: 'Apocalypse', abreviation: 'Ap', testament: 'nouveau', rang: 75, chapitres: 22, alias: ['apocalypse', 'ap', 'apoc', 'revelation', 'apo', 'rev'] },
 ];
 
 /** Minuscules, sans accents ni ponctuation : la forme utilisée pour comparer. */
+/**
+ * Passages deutérocanoniques logés à l'intérieur de livres reçus par tous.
+ *
+ * Les Églises du canon long lisent Suzanne et Bel comme les chapitres 13 et 14
+ * de Daniel, et la prière d'Azarias comme la suite de Daniel 3. Le livre entier
+ * ne peut donc pas porter une seule étiquette : c'est le passage qui décide.
+ */
+const PASSAGES_DEUTEROCANONIQUES: { livre: string; chapitre: number; depuis?: number }[] = [
+  { livre: 'Daniel', chapitre: 3, depuis: 31 },
+  { livre: 'Daniel', chapitre: 13 },
+  { livre: 'Daniel', chapitre: 14 },
+];
+
+/** Vrai si la référence désigne un passage du canon long seul. */
+export function estDeuterocanonique(ref: ReferenceBiblique): boolean {
+  const livre = trouverLivre(ref.livre);
+  if (!livre) return false;
+  if (livre.testament === 'deuterocanonique') return true;
+  return PASSAGES_DEUTEROCANONIQUES.some(
+    (p) =>
+      p.livre === livre.nom &&
+      p.chapitre === ref.chapitre &&
+      (p.depuis === undefined || (ref.versetFin ?? ref.verset ?? 0) >= p.depuis),
+  );
+}
+
 export function normaliser(texte: string): string {
   return texte
     .toLowerCase()

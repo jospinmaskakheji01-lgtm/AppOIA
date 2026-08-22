@@ -15,9 +15,11 @@
  * premier verset suit sur la même ligne, sans numéro. Les suivants portent le
  * leur, seul sur sa ligne.
  *
- * Cette édition comprend les livres deutérocanoniques. L'application est bâtie
- * sur le canon de soixante-six livres : ces livres-là sont relevés et écartés,
- * plutôt que rattachés de force à un canon qui ne les contient pas.
+ * Cette édition comprend les livres deutérocanoniques, que l'application reçoit
+ * depuis que son canon a été élargi. Deux d'entre eux demandent un traitement
+ * propre : les chapitres d'Esther grec portent des lettres autant que des
+ * chiffres, et les additions grecques prolongent Daniel 3 bien au-delà du
+ * compte de la Segond, qui sert ailleurs de borne.
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -65,30 +67,35 @@ const ABREVIATIONS = {
   '1 TIMOTHÉE': '1 Timothée', '2 TIMOTHÉE': '2 Timothée', PHILÉMON: 'Philémon',
   HÉBREUX: 'Hébreux', JACQUES: 'Jacques', '1 CHRONIQUES': '1 Chroniques',
   '2 CHRONIQUES': '2 Chroniques', APOCALYPSE: 'Apocalypse',
+  // Livres deutérocanoniques.
+  TOBIT: 'Tobie', TOBIE: 'Tobie', JUDITH: 'Judith',
+  SAG: 'Sagesse', SAGESSE: 'Sagesse', SIRAC: 'Siracide', SIRACIDE: 'Siracide',
+  BARUC: 'Baruch', BARUCH: 'Baruch',
+  '1 MACC': '1 Maccabées', '1 MACCABÉES': '1 Maccabées',
+  '2 MACC': '2 Maccabées', '2 MACCABÉES': '2 Maccabées',
 };
 
 /**
- * Les livres deutérocanoniques de cette édition. Ils ouvrent un chapitre comme
- * les autres, et il faut le savoir pour cesser de lire — sans quoi leur texte
- * serait rattaché au livre canonique précédent.
+ * Esther grec numérote ses chapitres 1 à 10 comme le livre hébreu, et désigne
+ * par les lettres A à F les six passages que le texte grec ajoute. Le modèle
+ * de l'application compte les chapitres en nombres : les lettres deviennent
+ * donc les chapitres 11 à 16, comme le fait la Vulgate depuis saint Jérôme.
  */
-const DEUTEROCANONIQUES = new Set([
-  'TOBIT', 'JUDITH', 'SAG', 'SAGESSE', 'SIRAC', 'SIRACIDE', 'BARUC',
-  '1 MACC', '2 MACC', '1 MACCABÉES', '2 MACCABÉES',
-]);
+const CHAPITRES_LETTRES = { A: 11, B: 12, C: 13, D: 14, E: 15, F: 16 };
 
 /**
- * Les récits deutérocanoniques rattachés à Daniel. Ils s'ouvrent par leur titre
- * seul, sans numéro de chapitre, et prolongeraient sinon le dernier verset lu.
+ * Le compte de versets de la Segond borne l'analyse. Là où elle ne peut rien
+ * dire — les livres deutérocanoniques, et les additions grecques qui
+ * prolongent Daniel 3 jusqu'au verset 97 — la borne est donnée ici.
  */
-const RECITS_AJOUTES = new Set(['SUZANNE', 'BEL', 'BEL ET LE DRAGON', 'BEL ET LE SERPENT']);
+const BORNES_PROPRES = new Map([['Daniel|3', 100]]);
 
 /**
  * Ouverture de chapitre : « GEN 6 », « 1 TIM 3 », « PSAUME 23 ».
  * Le premier verset suit sur la même ligne — sauf quand il commence à la
  * suivante, ce qui arrive quatre fois et faisait perdre quatre chapitres.
  */
-const OUVERTURE = /^(\d?\s?\p{Lu}{2,12})\s+(\d{1,3})\s*(.*)$/u;
+const OUVERTURE = /^(\d?\s?\p{Lu}{2,12}(?:\s+GREC)?)\s+(\d{1,3}|[A-F])\s*(.*)$/u;
 
 /**
  * La Segond installée sert de borne : un numéro de verset ne peut pas dépasser
@@ -102,8 +109,19 @@ for (const v of modulelsg1910.versets) {
   versetsSegond.set(cle, Math.max(versetsSegond.get(cle) ?? 0, v.verset));
 }
 function borne(livre, chapitre) {
+  const propre = BORNES_PROPRES.get(`${livre}|${chapitre}`);
+  if (propre) return propre;
   return (versetsSegond.get(`${livre}|${chapitre}`) ?? 200) + 2;
 }
+
+/**
+ * La Lettre de Jérémie est le seul livre dont le texte ne s'ouvre par aucun
+ * sigle : après son titre vient une introduction, puis le texte commence à la
+ * page suivante, verset 1 non numéroté. On attend donc d'avoir dépassé cette
+ * introduction pour ouvrir le livre, sans quoi elle deviendrait le verset 1.
+ */
+const TITRE_LETTRE = 'LETTRE DE JÉRÉMIE';
+let attenteLettre = 0; // 0 = rien, 1 = titre vu, 2 = introduction vue
 
 const versets = [];
 const chapitresLus = new Set();
@@ -138,14 +156,33 @@ function fermer(finDeduite) {
 for (const fichier of entrees) {
   for (const brute of fs.readFileSync(fichier, 'utf8').split('\n')) {
     const ligne = brute.trim();
-    if (!ligne || ligne.startsWith('=== PAGE ')) continue;
+    if (!ligne) continue;
+
+    if (ligne.startsWith('=== PAGE ')) {
+      if (attenteLettre === 2 && !chapitresLus.has(`${TITRE_LETTRE}|1`)) {
+        fermer(livre ? versetsSegond.get(`${livre}|${chapitre}`) : undefined);
+        chapitresLus.add(`${TITRE_LETTRE}|1`);
+        livre = 'Lettre de Jérémie';
+        chapitre = 1;
+        courant = { livre, chapitre, verset: 1, morceaux: [] };
+        dernier = 1;
+        attenteLettre = 0;
+      }
+      continue;
+    }
+    if (attenteLettre === 1 && ligne === 'INTRODUCTION') attenteLettre = 2;
+    if (ligne === TITRE_LETTRE && attenteLettre === 0) {
+      attenteLettre = 1;
+      continue;
+    }
+    if (attenteLettre) continue;
 
     const ouverture = ligne.match(OUVERTURE);
     if (ouverture) {
       const sigle = ouverture[1].replace(/\s+/g, ' ').trim();
-      const nom = ABREVIATIONS[sigle];
+      const nom = ABREVIATIONS[sigle] ?? (sigle === 'EST GREC' ? 'Esther grec' : undefined);
       const fiche = nom ? trouverLivre(nom) : undefined;
-      const numero = Number(ouverture[2]);
+      const numero = CHAPITRES_LETTRES[ouverture[2]] ?? Number(ouverture[2]);
       if (fiche && numero >= 1 && numero <= fiche.chapitres) {
         fermer(livre ? versetsSegond.get(`${livre}|${chapitre}`) : undefined);
         // Un chapitre déjà lu qui se rouvre appartient à un index ou à une
@@ -162,22 +199,13 @@ for (const fichier of entrees) {
         dernier = 1;
         continue;
       }
-      // Un livre deutérocanonique : on relève son passage et on cesse de lire
-      // jusqu'au prochain livre canonique. Tout autre mot en capitales — le
-      // texte en contient — n'est qu'un mot du texte.
-      if (!nom && DEUTEROCANONIQUES.has(sigle)) {
-        ecartes.set(sigle, (ecartes.get(sigle) ?? 0) + 1);
-        fermer(livre ? versetsSegond.get(`${livre}|${chapitre}`) : undefined);
-        livre = null;
-        continue;
-      }
     }
 
     // Trois sections viennent s'intercaler dans le fil du texte, et chacune
     // serait autrement absorbée par le dernier verset lu : les notes d'un
     // chapitre, les versions grecques d'Esther et de Daniel — qui prolongent le
     // livre sans ouvrir un nouveau sigle —, et le vocabulaire de fin d'ouvrage.
-    if (/:\s*Notes\s*$/.test(ligne) || /\bGREC\b/.test(ligne) || RECITS_AJOUTES.has(ligne)) {
+    if (/:\s*Notes\s*$/.test(ligne)) {
       fermer(livre ? versetsSegond.get(`${livre}|${chapitre}`) : undefined);
       livre = null;
       continue;

@@ -108,7 +108,7 @@ export default function Bible() {
       </View>
       <SousTitre style={{ marginTop: spacing.md }}>
         {versionActive
-          ? `${versionActive.nom} — ${nombre(statsVersion?.versets)} versets installés sur ${nombre(statsVersion?.livres)} livres.`
+          ? `${versionActive.nom} — ${nombre(statsVersion?.versets)} versets installés sur ${nombre(statsVersion?.livres)} livres${(statsVersion?.livres ?? 0) > 66 ? ', livres deutérocanoniques compris' : ''}.`
           : 'Aucune version installée.'}
         {versions.length === 1
           ? ` Une seule version est installée : ajoutez-en une pour comparer les traductions.`

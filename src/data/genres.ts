@@ -53,6 +53,19 @@ export const genresParLivre: Record<string, GenreLitteraire> = {
   Aggée: 'prophetie',
   Zacharie: 'prophetie',
   Malachie: 'prophetie',
+
+  // Livres deutérocanoniques. Les récits de Tobie et de Judith se lisent comme
+  // les récits de l'Ancien Testament ; la Sagesse et le Siracide relèvent de la
+  // littérature de sagesse ; Baruch et la Lettre de Jérémie de la prophétie.
+  Tobie: 'recit',
+  Judith: 'recit',
+  'Esther grec': 'recit',
+  '1 Maccabées': 'recit',
+  '2 Maccabées': 'recit',
+  Sagesse: 'sagesse',
+  Siracide: 'sagesse',
+  Baruch: 'prophetie',
+  'Lettre de Jérémie': 'prophetie',
   Matthieu: 'evangile',
   Marc: 'evangile',
   Luc: 'evangile',

@@ -8,7 +8,9 @@ import {
   analyserReference,
   comparerVersions,
   dossierReference,
+  estDeuterocanonique,
   formaterReference,
+  trouverLivre,
   versionsDisponibles,
 } from '../../src/knowledge';
 import { VersetTexte } from '../../src/knowledge/bible';
@@ -49,6 +51,14 @@ export default function DossierPassage() {
     );
   }
 
+  // Signaler un passage que seul le canon long reçoit, plutôt que de le
+  // présenter comme reçu de tous. C'est le passage qui décide, pas le livre :
+  // Daniel est reçu par tous, ses chapitres 13 et 14 non.
+  const canonLong = estDeuterocanonique(dossier.reference);
+  // Daniel est reçu par tous, ses chapitres 13 et 14 non : le mot doit dire
+  // s'il s'agit du livre entier ou de ce seul passage.
+  const livreEntier = trouverLivre(dossier.reference.livre)?.testament === 'deuterocanonique';
+
   const echelle = etat.reglages.tailleTexte;
   const presentes = comparaisons.filter((c) => !c.absent);
   const versionLue =
@@ -76,6 +86,19 @@ export default function DossierPassage() {
         }}>
         {dossier.libelle}
       </Text>
+      {canonLong ? (
+        <Text
+          style={{
+            color: t.colors.textMuted,
+            fontSize: fontSize.sm,
+            lineHeight: 21,
+            marginTop: spacing.sm,
+          }}>
+          {livreEntier ? 'Livre deutérocanonique' : 'Passage deutérocanonique'} : reçu comme
+          canonique par les Églises catholique et orthodoxe, tenu pour utile à lire sans être
+          canonique par les Églises issues de la Réforme.
+        </Text>
+      ) : null}
 
       <Separateur label="Texte biblique" />
 

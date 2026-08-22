@@ -13,6 +13,7 @@ import {
   dossierReference,
   enregistrerModule,
   enregistrerVersion,
+  estDeuterocanonique,
   formaterReference,
   getEntree,
   getSource,
@@ -260,6 +261,16 @@ async function principal(): Promise<void> {
   const parAccent = rechercher('esperance');
   verifier('la recherche est insensible aux accents', parAccent.resultats.length > 0, parAccent.compte);
 
+  console.log('\nCitation exacte');
+  for (const [citation, attendu] of [
+    ['Car Dieu a tant aimé le monde', 'Jean 3:16'],
+    ['Toute sagesse vient du Seigneur', 'Siracide 1:1'],
+  ] as const) {
+    const premier = rechercher(citation, { limite: 5 }).resultats[0];
+    const libelle = premier?.genre === 'verset' ? premier.libelle : undefined;
+    verifier(`« ${citation} » remonte ${attendu}`, libelle === attendu, [premier?.genre, libelle]);
+  }
+
   console.log('\nQuestions rédigées');
   const question = rechercher('Que signifie le mot grâce ?');
   verifier('une question rédigée trouve des versets', question.compte.verset > 0, question.compte);
@@ -332,7 +343,44 @@ async function principal(): Promise<void> {
   console.log('\nParole de Vie — Bible entière');
   const pdv2 = statistiquesVersion('parole-de-vie');
   verifier('la version est installée', Boolean(pdv2), pdv2?.versets);
-  verifier('les 66 livres sont couverts', (pdv2?.livres ?? 0) === 66, pdv2?.livres);
+  verifier('les 75 livres du canon long sont couverts', (pdv2?.livres ?? 0) === 75, pdv2?.livres);
+  // Les livres deutérocanoniques, chacun complet.
+  const deutero = livresCanoniques.filter((l) => l.testament === 'deuterocanonique');
+  verifier('le canon compte neuf livres deutérocanoniques', deutero.length === 9, deutero.length);
+  const incomplets = deutero.filter((l) => {
+    const chapitres = comparerVersions({ livre: l.nom, chapitre: l.chapitres }).find(
+      (c) => c.version.id === 'parole-de-vie',
+    );
+    return !chapitres?.versets.length;
+  });
+  verifier('chacun est installé jusqu’à son dernier chapitre', incomplets.length === 0, incomplets.map((l) => l.nom));
+  // Suzanne et Bel sont les chapitres 13 et 14 de Daniel dans le canon long.
+  for (const chapitre of [13, 14]) {
+    const dn = comparerVersions({ livre: 'Daniel', chapitre, verset: 1 }).find(
+      (c) => c.version.id === 'parole-de-vie',
+    );
+    verifier(`Daniel ${chapitre} est installé`, Boolean(dn?.versets.length), dn?.versets[0]?.texte?.slice(0, 40));
+  }
+  // La prière d'Azarias prolonge Daniel 3 bien au-delà du compte de la Segond.
+  const azarias = comparerVersions({ livre: 'Daniel', chapitre: 3, verset: 52 }).find(
+    (c) => c.version.id === 'parole-de-vie',
+  );
+  verifier('les additions grecques de Daniel 3 sont installées', Boolean(azarias?.versets.length));
+  // C'est le passage qui relève du canon long, pas toujours le livre entier.
+  const corpus: [Record<string, unknown>, boolean][] = [
+    [{ livre: 'Siracide', chapitre: 1, verset: 1 }, true],
+    [{ livre: 'Daniel', chapitre: 13, verset: 1 }, true],
+    [{ livre: 'Daniel', chapitre: 3, verset: 52 }, true],
+    [{ livre: 'Daniel', chapitre: 3, verset: 1 }, false],
+    [{ livre: 'Daniel', chapitre: 12, verset: 1 }, false],
+    [{ livre: 'Jean', chapitre: 3, verset: 16 }, false],
+  ];
+  const mal = corpus.filter(([ref, attendu]) => estDeuterocanonique(ref as never) !== attendu);
+  verifier(
+    'le canon long est signalé au passage près',
+    mal.length === 0,
+    mal.map(([ref]) => ref),
+  );
   // Cette traduction rend souvent plusieurs versets d'un seul tenant. Le bloc
   // déclare sa portée, de sorte que chaque référence de la Segond y mène.
   let atteignables = 0;

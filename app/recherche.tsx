@@ -25,18 +25,19 @@ const LIBELLES: Record<Filtre, string> = {
 const SUGGESTIONS = ['grâce', 'Jean 3:16', 'pardon', 'agapè', 'Psaume 23', 'espérance'];
 
 export default function Recherche() {
-  const { theme: t, etat } = useApp();
+  const { theme: t } = useApp();
   const router = useRouter();
   const [saisie, setSaisie] = useState('');
   const [filtre, setFiltre] = useState<Filtre>('tout');
 
   const base = useMemo(() => statistiquesBase(), []);
+  // La recherche porte sur toutes les versions installées, non sur la seule
+  // version de lecture : un texte qui ne figure que dans l'une d'elles — les
+  // livres deutérocanoniques, le Nouveau Testament de Parole Vivante — doit
+  // pouvoir être trouvé. Chaque résultat indique de quelle version il vient.
   const reponse = useMemo(
-    () =>
-      saisie.trim().length >= 2
-        ? rechercher(saisie, { versionId: etat.reglages.versionPreferee, limite: 25 })
-        : undefined,
-    [saisie, etat.reglages.versionPreferee],
+    () => (saisie.trim().length >= 2 ? rechercher(saisie, { limite: 25 }) : undefined),
+    [saisie],
   );
 
   const affiches = (reponse?.resultats ?? []).filter(

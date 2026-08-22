@@ -82,6 +82,17 @@ chapitre hors plage.
 }
 ```
 
+### Le canon
+
+`src/knowledge/reference.ts` porte les 75 livres du canon long, chacun avec son rang, son
+nombre de chapitres et ses graphies acceptées. Le champ `testament` vaut `ancien`,
+`deuterocanonique` ou `nouveau` : l'application distingue les corpus sans trancher entre
+les traditions, et une version qui ne couvre pas un livre est simplement signalée absente
+du passage.
+
+Ajouter un livre au canon, c'est ajouter une ligne à `livresCanoniques`. Les rangs
+doivent rester continus : ils donnent l'ordre de lecture.
+
 ### Une version qui regroupe des versets
 
 Les traductions en langue courante rendent souvent plusieurs versets d'un seul tenant.
