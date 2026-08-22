@@ -8,6 +8,7 @@
 
 import { modulelsg1910 } from '../data/versions/lsg1910';
 import { moduleparolevivante } from '../data/versions/parole-vivante';
+import { modulelouangevivante } from '../data/versions/louange-vivante';
 import { moduleDictionnaire } from '../data/modules/dictionnaire';
 import { modulepetitdictionnairebiblique } from '../data/modules/petit-dictionnaire-biblique';
 import { modulesagessevivanteintroductions } from '../data/modules/sagesse-vivante-introductions';
@@ -19,7 +20,11 @@ import { enregistrerModule } from './registre';
 import { AnomalieModule, ModuleConnaissance } from './types';
 
 /** Versions bibliques installées. Ajouter une version = ajouter une ligne. */
-const modulesVersions: ModuleVersion[] = [modulelsg1910, moduleparolevivante];
+const modulesVersions: ModuleVersion[] = [
+  modulelsg1910,
+  moduleparolevivante,
+  modulelouangevivante,
+];
 
 /** Modules de connaissance installés. Ajouter un ouvrage = ajouter une ligne. */
 const modulesConnaissance: ModuleConnaissance[] = [

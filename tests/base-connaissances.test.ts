@@ -313,8 +313,8 @@ async function principal(): Promise<void> {
   const cote = comparerVersions({ livre: 'Jean', chapitre: 3, verset: 16 });
   const rendues = cote.filter((c) => !c.absent);
   verifier(
-    'chaque version couvrant le passage le rend',
-    rendues.length === installees.length,
+    'chaque version rendue porte bien le texte',
+    rendues.length >= 2 && rendues.every((c) => c.versets.length > 0),
     cote.map((c) => [c.version.abreviation, c.versets.length]),
   );
   verifier(
@@ -328,6 +328,31 @@ async function principal(): Promise<void> {
     absent.some((c) => c.absent),
     absent.map((c) => [c.version.abreviation, c.absent]),
   );
+
+  console.log('\nLouange vivante — les Psaumes');
+  const lv = statistiquesVersion('louange-vivante');
+  verifier('la version est installée', Boolean(lv), lv?.versets);
+  verifier('les 150 psaumes sont couverts', (lv?.chapitres ?? 0) === 150, lv?.chapitres);
+  const ps23 = comparerVersions({ livre: 'Psaumes', chapitre: 23, verset: 1 }).find(
+    (c) => c.version.id === 'louange-vivante',
+  );
+  verifier('le Psaume 23 est rendu', Boolean(ps23?.versets.length), ps23?.versets[0]?.texte?.slice(0, 40));
+  // Kuen numérote la suscription ; elle est ramenée au verset 0 pour que la
+  // référence des versets suivants coïncide avec celle de la Segond.
+  const ps22 = comparerVersions({ livre: 'Psaumes', chapitre: 22, verset: 1 });
+  const [enLSG, enLV] = ['lsg1910', 'louange-vivante'].map(
+    (id) => ps22.find((c) => c.version.id === id)?.versets[0]?.texte ?? '',
+  );
+  verifier(
+    'Psaume 22:1 désigne le même verset dans les deux versions',
+    enLSG.includes('pourquoi m') && enLV.includes('pourquoi m'),
+    [enLSG.slice(0, 40), enLV.slice(0, 40)],
+  );
+  // Un livre que cette version ne couvre pas doit être signalé, non inventé.
+  const horsPsaumes = comparerVersions({ livre: 'Jean', chapitre: 3, verset: 16 }).find(
+    (c) => c.version.id === 'louange-vivante',
+  );
+  verifier('hors des Psaumes, la version est signalée absente', Boolean(horsPsaumes?.absent));
 
   console.log('\nFusion de deux sources sur une même entrée');
   const fusion = enregistrerModule({

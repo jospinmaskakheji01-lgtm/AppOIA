@@ -68,7 +68,12 @@ for (const [i, v] of versets.entries()) {
     horsPlage += 1;
     continue;
   }
-  if (!Number.isInteger(numero) || numero < 1) {
+  // Le verset 0 est la suscription d'un psaume — « Au chef de chœur. Psaume de
+  // David. » —, que la Segond laisse hors numérotation et que d'autres versions
+  // comptent comme premier verset. La garder sous le numéro 0 conserve le texte
+  // sans décaler la référence de tous les versets suivants.
+  const suscription = numero === 0 && livre.nom === 'Psaumes';
+  if (!Number.isInteger(numero) || (numero < 1 && !suscription)) {
     horsPlage += 1;
     continue;
   }
