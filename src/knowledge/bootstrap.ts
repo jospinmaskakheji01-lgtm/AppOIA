@@ -9,6 +9,7 @@
 import { modulelsg1910 } from '../data/versions/lsg1910';
 import { moduleparolevivante } from '../data/versions/parole-vivante';
 import { modulelouangevivante } from '../data/versions/louange-vivante';
+import { moduleparoledevie } from '../data/versions/parole-de-vie';
 import { moduleDictionnaire } from '../data/modules/dictionnaire';
 import { modulepetitdictionnairebiblique } from '../data/modules/petit-dictionnaire-biblique';
 import { modulesagessevivanteintroductions } from '../data/modules/sagesse-vivante-introductions';
@@ -24,6 +25,7 @@ const modulesVersions: ModuleVersion[] = [
   modulelsg1910,
   moduleparolevivante,
   modulelouangevivante,
+  moduleparoledevie,
 ];
 
 /** Modules de connaissance installés. Ajouter un ouvrage = ajouter une ligne. */

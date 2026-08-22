@@ -82,6 +82,24 @@ chapitre hors plage.
 }
 ```
 
+### Une version qui regroupe des versets
+
+Les traductions en langue courante rendent souvent plusieurs versets d'un seul tenant.
+Un bloc déclare alors sa portée avec `versetFin` :
+
+```json
+{ "livre": "Genèse", "chapitre": 3, "verset": 14, "versetFin": 15, "texte": "…" }
+```
+
+Le registre indexe le bloc sous **chacun** des versets qu'il couvre : demander
+`Genèse 3:15` rend ce bloc, au lieu de déclarer la version absente du passage. Le
+lecteur affiche « 14-15 », comme une Bible imprimée. Un même bloc atteint par plusieurs
+numéros n'est rendu qu'une fois.
+
+C'est aussi ce qui permet de rester honnête quand une édition perd un numéro de verset
+en composant un passage poétique : le bloc précédent le contient réellement, et le dire
+vaut mieux que laisser croire que le verset manque.
+
 ### Un ouvrage de méthode
 
 Certains ouvrages n'apportent ni définitions ni commentaires de passage : ils disent

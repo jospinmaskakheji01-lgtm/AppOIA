@@ -35,6 +35,12 @@ export interface VersetTexte {
   livre: string;
   chapitre: number;
   verset: number;
+  /**
+   * Dernier verset rendu par ce bloc, quand la version en regroupe plusieurs.
+   * Les traductions en langue courante le font souvent — Parole de Vie rend
+   * « Nombres 4.34-49 » d'un seul tenant. Absent = un seul verset.
+   */
+  versetFin?: number;
   texte: string;
 }
 
@@ -58,7 +64,12 @@ export function enregistrerVersion(module: ModuleVersion): void {
   const parVerset = new Map<string, VersetTexte>();
   const chapitresParLivre = new Map<string, Set<number>>();
   for (const v of module.versets) {
-    parVerset.set(cleVerset(v.livre, v.chapitre, v.verset), v);
+    // Un bloc qui regroupe plusieurs versets est indexé sous chacun d'eux :
+    // demander le verset 15 d'un bloc « 14-15 » doit rendre ce bloc, et non
+    // laisser croire que la version ne couvre pas le passage.
+    for (let n = v.verset; n <= (v.versetFin ?? v.verset); n++) {
+      parVerset.set(cleVerset(v.livre, v.chapitre, n), v);
+    }
     const cle = normaliser(v.livre);
     if (!chapitresParLivre.has(cle)) chapitresParLivre.set(cle, new Set());
     chapitresParLivre.get(cle)!.add(v.chapitre);
@@ -111,7 +122,8 @@ export function getPassage(versionId: string, ref: ReferenceBiblique): VersetTex
   const sortie: VersetTexte[] = [];
   for (let n = ref.verset; n <= fin; n++) {
     const v = chargee.parVerset.get(cleVerset(ref.livre, ref.chapitre, n));
-    if (v) sortie.push(v);
+    // Un bloc groupé est atteint par plusieurs numéros : ne le rendre qu'une fois.
+    if (v && !sortie.includes(v)) sortie.push(v);
   }
   return sortie;
 }

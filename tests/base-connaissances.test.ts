@@ -329,6 +329,41 @@ async function principal(): Promise<void> {
     absent.map((c) => [c.version.abreviation, c.absent]),
   );
 
+  console.log('\nParole de Vie — Bible entière');
+  const pdv2 = statistiquesVersion('parole-de-vie');
+  verifier('la version est installée', Boolean(pdv2), pdv2?.versets);
+  verifier('les 66 livres sont couverts', (pdv2?.livres ?? 0) === 66, pdv2?.livres);
+  // Cette traduction rend souvent plusieurs versets d'un seul tenant. Le bloc
+  // déclare sa portée, de sorte que chaque référence de la Segond y mène.
+  let atteignables = 0;
+  let horsPortee: string[] = [];
+  for (const [livre, chapitre, verset] of [
+    ['Genèse', 3, 15],
+    ['Nombres', 4, 40],
+    ['Psaumes', 119, 105],
+    ['Ésaïe', 53, 5],
+    ['Jean', 3, 16],
+    ['Apocalypse', 22, 21],
+  ] as const) {
+    const bloc = comparerVersions({ livre, chapitre, verset }).find((c) => c.version.id === 'parole-de-vie');
+    if (bloc?.versets.length) atteignables += 1;
+    else horsPortee.push(`${livre} ${chapitre}:${verset}`);
+  }
+  verifier('les versets groupés restent atteignables par leur référence', atteignables === 6, horsPortee);
+  const gen3 = comparerVersions({ livre: 'Genèse', chapitre: 3, verset: 15 }).find(
+    (c) => c.version.id === 'parole-de-vie',
+  )?.versets[0];
+  verifier(
+    'un bloc groupé déclare sa portée',
+    gen3?.verset === 14 && gen3?.versetFin === 15,
+    [gen3?.verset, gen3?.versetFin],
+  );
+  // Le même bloc atteint par deux numéros ne doit être rendu qu'une fois.
+  const plage = comparerVersions({ livre: 'Genèse', chapitre: 3, verset: 14, versetFin: 15 }).find(
+    (c) => c.version.id === 'parole-de-vie',
+  );
+  verifier('un bloc groupé n’est rendu qu’une fois', plage?.versets.length === 1, plage?.versets.length);
+
   console.log('\nLouange vivante — les Psaumes');
   const lv = statistiquesVersion('louange-vivante');
   verifier('la version est installée', Boolean(lv), lv?.versets);

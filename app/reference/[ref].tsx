@@ -11,8 +11,18 @@ import {
   formaterReference,
   versionsDisponibles,
 } from '../../src/knowledge';
+import { VersetTexte } from '../../src/knowledge/bible';
 import { useApp } from '../../src/store/AppContext';
 import { fontSize, radius, spacing } from '../../src/theme/theme';
+
+/**
+ * Le numéro affiché devant un verset. Certaines traductions en rendent
+ * plusieurs d'un seul tenant : le bloc porte alors la plage entière, comme
+ * dans une Bible imprimée, plutôt que le seul numéro du premier.
+ */
+function numeroteAffiche(v: VersetTexte): string {
+  return v.versetFin && v.versetFin > v.verset ? `${v.verset}-${v.versetFin}` : String(v.verset);
+}
 
 /**
  * Dossier d'un passage : tout ce que la base sait d'une référence,
@@ -45,7 +55,7 @@ export default function DossierPassage() {
     presentes.find((c) => c.version.id === etat.reglages.versionPreferee) ?? presentes[0];
 
   const partager = () => {
-    const texte = versionLue?.versets.map((v) => `${v.verset} ${v.texte}`).join(' ') ?? '';
+    const texte = versionLue?.versets.map((v) => `${numeroteAffiche(v)} ${v.texte}`).join(' ') ?? '';
     Share.share({
       message: `${dossier.libelle}\n\n${texte}\n\n${versionLue?.version.nom ?? ''}`,
     }).catch(() => {});
@@ -96,10 +106,12 @@ export default function DossierPassage() {
                     color: t.colors.textFaint,
                     fontSize: fontSize.xs * echelle,
                     fontWeight: '700',
-                    width: 22,
+                    // Assez large pour une plage « 14-15 », que rendent les
+                    // versions qui regroupent plusieurs versets.
+                    width: 34,
                     paddingTop: 4,
                   }}>
-                  {v.verset}
+                  {numeroteAffiche(v)}
                 </Text>
                 <Text
                   style={{

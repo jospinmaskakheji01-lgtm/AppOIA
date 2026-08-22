@@ -109,7 +109,12 @@ const chemin = path.join(racine, 'src/data/versions', `${version.id}.ts`);
 const lignes = versets
   .map(
     (v) =>
-      `  { livre: \`${echapper(v.livre)}\`, chapitre: ${Number(v.chapitre)}, verset: ${Number(v.verset)}, texte: \`${echapper(v.texte)}\` },`,
+      `  { livre: \`${echapper(v.livre)}\`, chapitre: ${Number(v.chapitre)}, verset: ${Number(v.verset)}` +
+        // Certaines versions rendent plusieurs versets d'un seul tenant ; la
+        // portée du bloc doit être conservée pour qu'on le retrouve par la
+        // référence de n'importe lequel des versets qu'il couvre.
+        (Number(v.versetFin) > Number(v.verset) ? `, versetFin: ${Number(v.versetFin)}` : '') +
+        `, texte: \`${echapper(v.texte)}\` },`,
   )
   .join('\n');
 

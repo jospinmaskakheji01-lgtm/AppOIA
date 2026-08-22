@@ -106,8 +106,16 @@ Le déroulé complet et les formats d'entrée sont dans
 
 ### Contenu actuel
 
-**Deux versions bibliques** — Louis Segond 1910 (48 passages) et Parole Vivante, la
-transposition du Nouveau Testament par Alfred Kuen (7 952 versets, les 27 livres).
+**Quatre versions bibliques.** Deux Bibles entières — Louis Segond 1910 (31 102 versets,
+les 66 livres) et Parole de Vie (24 077 blocs, français fondamental) — et deux
+transpositions d'Alfred Kuen : Parole Vivante pour le Nouveau Testament (7 952 versets)
+et Louange vivante pour les 150 psaumes.
+
+Les quatre partagent la numérotation de la Segond, ce qui n'allait pas de soi : Kuen
+compte la suscription d'un psaume comme premier verset, et Parole de Vie rend souvent
+plusieurs versets d'un seul tenant. Un bloc groupé déclare sa portée, de sorte que
+n'importe quelle référence y mène — les 31 102 versets de la Segond sont retrouvables
+dans Parole de Vie, et le bloc s'affiche « 14-15 », comme dans une Bible imprimée.
 
 **Plus de 1 600 entrées de dictionnaire**, dont 1 671 issues du Petit Dictionnaire
 Biblique — un recueil de cinq ouvrages où chaque notice conserve celui dont elle
@@ -116,6 +124,10 @@ définitions côte à côte plutôt qu'une synthèse.
 
 **Les introductions d'Alfred Kuen** au Cantique des cantiques, à Job, aux Proverbes et à
 l'Ecclésiaste, rattachées à chacun de ces livres.
+
+**5 226 commentaires de William MacDonald** sur les trente-neuf livres de l'Ancien
+Testament, chacun rattaché à son passage et renvoyant à sa page. Ils s'ouvrent à
+l'Interprétation, après que l'utilisateur a écrit la sienne.
 
 **35 conseils de méthode** tirés des quatre ouvrages qui fondent la démarche : *Living By
 the Book* de Howard Hendricks — d'où viennent les trois temps et les neuf questions de
