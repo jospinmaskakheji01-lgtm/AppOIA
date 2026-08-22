@@ -39,3 +39,7 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+# Documents de travail : les PDF déposés restent locaux au dépôt de l'utilisateur.
+# Décommentez si vous préférez ne pas les versionner.
+# documents/*.pdf

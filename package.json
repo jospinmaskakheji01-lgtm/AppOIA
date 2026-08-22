@@ -27,6 +27,7 @@
   "devDependencies": {
     "@types/react": "~19.2.2",
     "esbuild": "^0.28.2",
+    "pdfjs-dist": "^6.2.108",
     "typescript": "~6.0.3"
   },
   "scripts": {
@@ -37,7 +38,8 @@
     "lint": "tsc --noEmit",
     "test:base": "esbuild tests/base-connaissances.test.ts --bundle --platform=node --format=cjs --outfile=/tmp/lumiere-test.cjs --log-level=error && node /tmp/lumiere-test.cjs",
     "importer:version": "node scripts/importer-version.mjs",
-    "importer:document": "node scripts/importer-document.mjs"
+    "importer:document": "node scripts/importer-document.mjs",
+    "extraire": "node scripts/extraire-document.mjs"
   },
   "private": true
 }
