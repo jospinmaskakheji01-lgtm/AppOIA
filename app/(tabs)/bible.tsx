@@ -17,6 +17,7 @@ import { BIBLE_VERSION, passages, passagesById } from '../../src/data/passages';
 import { statistiquesBase, statistiquesVersion, versionsDisponibles } from '../../src/knowledge';
 import { useApp } from '../../src/store/AppContext';
 import { fontSize, radius, spacing } from '../../src/theme/theme';
+import { nombre } from '../../src/utils/nombres';
 
 type Filtre = 'tous' | 'ancien' | 'nouveau' | 'favoris';
 
@@ -68,7 +69,7 @@ export default function Bible() {
       <Etiquette>Bible et base de connaissances</Etiquette>
       <Titre style={{ marginTop: spacing.sm }}>Bibliothèque</Titre>
       <SousTitre style={{ marginTop: spacing.sm }}>
-        {passages.length} passages hors connexion, enrichis de {base.entrees} entrées de
+        {passages.length} passages hors connexion, enrichis de {nombre(base.entrees)} entrées de
         dictionnaire, {base.commentaires} commentaires et {base.referencesCroisees}{' '}
         références croisées.
       </SousTitre>
@@ -107,7 +108,7 @@ export default function Bible() {
       </View>
       <SousTitre style={{ marginTop: spacing.md }}>
         {versionActive
-          ? `${versionActive.nom} — ${statsVersion?.versets ?? 0} versets installés sur ${statsVersion?.livres ?? 0} livres.`
+          ? `${versionActive.nom} — ${nombre(statsVersion?.versets)} versets installés sur ${nombre(statsVersion?.livres)} livres.`
           : 'Aucune version installée.'}
         {versions.length === 1
           ? ` Une seule version est installée : ajoutez-en une pour comparer les traductions.`

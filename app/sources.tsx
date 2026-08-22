@@ -6,6 +6,7 @@ import { statistiquesBase, toutesLesSources, versionsDisponibles } from '../src/
 import { Provenance } from '../src/knowledge/types';
 import { useApp } from '../src/store/AppContext';
 import { fontSize, radius, spacing } from '../src/theme/theme';
+import { nombre } from '../src/utils/nombres';
 
 /** Libellés d'affichage de la provenance, quand elle est renseignée. */
 const LIBELLES_PROVENANCE: Record<Provenance, string> = {
@@ -36,9 +37,9 @@ export default function Sources() {
 
       <Carte accent style={{ marginTop: spacing.lg }}>
         <SousTitre>
-          {base.sources} sources · {base.entrees} entrées · {base.commentaires} commentaires ·{' '}
-          {base.conseils} conseils de méthode · {base.referencesCroisees} références croisées ·{' '}
-          {base.themes} thèmes ·{' '}
+          {nombre(base.sources)} sources · {nombre(base.entrees)} entrées ·{' '}
+          {nombre(base.commentaires)} commentaires · {nombre(base.conseils)} conseils de méthode ·{' '}
+          {nombre(base.referencesCroisees)} références croisées · {nombre(base.themes)} thèmes ·{' '}
           {versions.length} version{versions.length > 1 ? 's' : ''} biblique
           {versions.length > 1 ? 's' : ''}
         </SousTitre>
