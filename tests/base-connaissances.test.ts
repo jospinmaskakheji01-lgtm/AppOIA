@@ -16,10 +16,12 @@ import {
   formaterReference,
   getEntree,
   getSource,
+  livresCanoniques,
   rassemblerContexte,
   rechercher,
   statistiquesBase,
   statistiquesVersion,
+  tousLesCommentaires,
   tousLesConseils,
   versionsDisponibles,
 } from '../src/knowledge';
@@ -196,6 +198,36 @@ async function principal(): Promise<void> {
     sansConseil.length === 0,
     sansConseil.map((q) => q.cle),
   );
+
+  console.log('\nCommentaire du disciple — Ancien Testament');
+  const cbd = getSource('macdonald-commentaire-at');
+  verifier('la source est enregistrée', Boolean(cbd), cbd?.auteur);
+  // Un commentaire par livre, sur les trente-neuf de l'Ancien Testament.
+  const sansCommentaire = livresCanoniques
+    .filter((l) => l.testament === 'ancien')
+    .filter(
+      (l) =>
+        !tousLesCommentaires().some(
+          (c) => c.sourceId === 'macdonald-commentaire-at' && c.reference.livre === l.nom,
+        ),
+    )
+    .map((l) => l.nom);
+  verifier('les 39 livres de l’Ancien Testament sont commentés', sansCommentaire.length === 0, sansCommentaire);
+  // Chaque commentaire renvoie à sa page : c'est ce qui rend la citation vérifiable.
+  const sansPage = tousLesCommentaires().filter(
+    (c) => c.sourceId === 'macdonald-commentaire-at' && !c.localisation?.page,
+  );
+  verifier('chaque commentaire porte son numéro de page', sansPage.length === 0, sansPage.length);
+  for (const [livre, chapitre, verset] of [
+    ['Ésaïe', 53, 5],
+    ['Psaumes', 23, 1],
+    ['Genèse', 1, 1],
+  ] as const) {
+    const trouves = commentairesPour({ livre, chapitre, verset }).filter(
+      (c) => c.sourceId === 'macdonald-commentaire-at',
+    );
+    verifier(`${livre} ${chapitre}:${verset} est commenté`, trouves.length > 0, trouves.length);
+  }
 
   console.log('\nDossier de référence (exemple Jean 3:16)');
   const dossier = dossierReference({ livre: 'Jean', chapitre: 3, verset: 16 });

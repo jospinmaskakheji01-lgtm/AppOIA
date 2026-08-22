@@ -11,6 +11,7 @@ import { moduleparolevivante } from '../data/versions/parole-vivante';
 import { moduleDictionnaire } from '../data/modules/dictionnaire';
 import { modulepetitdictionnairebiblique } from '../data/modules/petit-dictionnaire-biblique';
 import { modulesagessevivanteintroductions } from '../data/modules/sagesse-vivante-introductions';
+import { modulemacdonaldcommentaireatv1 } from '../data/modules/macdonald-commentaire-at-v1';
 import { moduleMethodeSources } from '../data/modules/methode-sources';
 import { moduleMethodeOIA, moduleRedaction } from '../data/modules/derive';
 import { enregistrerVersion, ModuleVersion } from './bible';
@@ -26,6 +27,7 @@ const modulesConnaissance: ModuleConnaissance[] = [
   moduleDictionnaire,
   modulepetitdictionnairebiblique,
   modulesagessevivanteintroductions,
+  modulemacdonaldcommentaireatv1,
   moduleMethodeOIA,
   moduleMethodeSources,
 ];
