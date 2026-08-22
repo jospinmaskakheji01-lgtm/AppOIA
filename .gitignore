@@ -40,6 +40,5 @@ yarn-error.*
 /ios
 /android
 
-# Documents de travail : les PDF déposés restent locaux au dépôt de l'utilisateur.
-# Décommentez si vous préférez ne pas les versionner.
-# documents/*.pdf
+# Les extractions de texte sont régénérables : npm run extraire documents/
+documents/*.txt

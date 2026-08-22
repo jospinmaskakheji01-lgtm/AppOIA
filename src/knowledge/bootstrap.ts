@@ -7,6 +7,7 @@
  */
 
 import { moduleLSG } from '../data/versions/lsg1910';
+import { moduleparolevivante } from '../data/versions/parole-vivante';
 import { moduleDictionnaire } from '../data/modules/dictionnaire';
 import { moduleMethodeOIA, moduleRedaction } from '../data/modules/derive';
 import { enregistrerVersion, ModuleVersion } from './bible';
@@ -14,7 +15,7 @@ import { enregistrerModule } from './registre';
 import { AnomalieModule, ModuleConnaissance } from './types';
 
 /** Versions bibliques installées. Ajouter une version = ajouter une ligne. */
-const modulesVersions: ModuleVersion[] = [moduleLSG];
+const modulesVersions: ModuleVersion[] = [moduleLSG, moduleparolevivante];
 
 /** Modules de connaissance installés. Ajouter un ouvrage = ajouter une ligne. */
 const modulesConnaissance: ModuleConnaissance[] = [

@@ -12,6 +12,7 @@
 import { Source } from '../knowledge/types';
 
 export const SOURCE_LSG = 'bible-lsg-1910';
+export const SOURCE_PAROLE_VIVANTE = 'bible-parole-vivante';
 export const SOURCE_REDACTION = 'lumiere-redaction';
 export const SOURCE_METHODE_OIA = 'methode-oia';
 
@@ -26,6 +27,19 @@ export const sources: Source[] = [
     provenance: 'domaine-public',
     abreviation: 'LSG',
     ajouteLe: '2026-08-21',
+  },
+  {
+    id: SOURCE_PAROLE_VIVANTE,
+    titre: 'Parole Vivante — Nouveau Testament',
+    auteur: 'Alfred Kuen',
+    editeur: 'Éditions Farel / BLF',
+    annee: '1976',
+    langue: 'fr',
+    type: 'bible',
+    noteProvenance: `Transposition du Nouveau Testament. Le texte reformule pour éclairer le sens plutôt que de suivre le mot à mot : à lire à côté d'une traduction littérale, non à sa place.`,
+    documentOrigine: 'Parole-Vivante-Kuen_-Alfred.pdf',
+    abreviation: 'PV',
+    ajouteLe: '2026-08-22',
   },
   {
     id: SOURCE_REDACTION,

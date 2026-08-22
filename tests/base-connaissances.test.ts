@@ -68,6 +68,13 @@ async function principal(): Promise<void> {
   verifier('au moins une version installée', versions.length >= 1, versions.length);
   const stats = statistiquesVersion(versions[0].id);
   verifier('la version contient des versets', stats.versets > 300, stats);
+  const pv = versions.find((v) => v.id === 'parole-vivante');
+  verifier('le Nouveau Testament Parole Vivante est installé', Boolean(pv), versions.map((v) => v.abreviation));
+  if (pv) {
+    const statsPV = statistiquesVersion(pv.id);
+    verifier('les 27 livres du NT sont présents', statsPV.livres === 27, statsPV);
+    verifier('le compte de versets est proche du canon', Math.abs(statsPV.versets - 7957) < 60, statsPV.versets);
+  }
   const compare = comparerVersions({ livre: 'Jean', chapitre: 3, verset: 16 });
   verifier('Jean 3:16 est trouvé', compare[0]?.versets.length === 1, compare[0]?.versets.length);
   verifier(
@@ -162,12 +169,19 @@ async function principal(): Promise<void> {
   );
 
   console.log('\nComparaison de versions');
-  verifier('deux versions sont installées', versionsDisponibles().length === 2, versionsDisponibles().map((v) => v.abreviation));
+  const installees = versionsDisponibles();
+  verifier('plusieurs versions sont installées', installees.length >= 2, installees.map((v) => v.abreviation));
   const cote = comparerVersions({ livre: 'Jean', chapitre: 3, verset: 16 });
-  verifier('les deux versions rendent le verset', cote.filter((c) => !c.absent).length === 2, cote.map((c) => [c.version.abreviation, c.versets.length]));
+  const rendues = cote.filter((c) => !c.absent);
+  verifier(
+    'chaque version couvrant le passage le rend',
+    rendues.length === installees.length,
+    cote.map((c) => [c.version.abreviation, c.versets.length]),
+  );
   verifier(
     'les textes diffèrent bien entre versions',
-    cote[0].versets[0]?.texte !== cote[1].versets[0]?.texte,
+    new Set(rendues.map((c) => c.versets[0]?.texte)).size === rendues.length,
+    rendues.map((c) => c.version.abreviation),
   );
   const absent = comparerVersions({ livre: 'Genèse', chapitre: 1, verset: 1 });
   verifier(
