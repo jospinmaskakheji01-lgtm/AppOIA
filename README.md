@@ -114,6 +114,9 @@ Biblique — un recueil de cinq ouvrages où chaque notice conserve celui dont e
 provient, avec sa page. Les termes traités par plusieurs ouvrages portent plusieurs
 définitions côte à côte plutôt qu'une synthèse.
 
+**Les introductions d'Alfred Kuen** au Cantique des cantiques, à Job, aux Proverbes et à
+l'Ecclésiaste, rattachées à chacun de ces livres.
+
 S'y ajoutent 24 fiches de livres, plus de 200 commentaires, plus de 6 000 références
 bibliques extraites et normalisées, et le document de méthode OIA comme source citable.
 

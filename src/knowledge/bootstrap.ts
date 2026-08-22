@@ -10,6 +10,7 @@ import { moduleLSG } from '../data/versions/lsg1910';
 import { moduleparolevivante } from '../data/versions/parole-vivante';
 import { moduleDictionnaire } from '../data/modules/dictionnaire';
 import { modulepetitdictionnairebiblique } from '../data/modules/petit-dictionnaire-biblique';
+import { modulesagessevivanteintroductions } from '../data/modules/sagesse-vivante-introductions';
 import { moduleMethodeOIA, moduleRedaction } from '../data/modules/derive';
 import { enregistrerVersion, ModuleVersion } from './bible';
 import { enregistrerModule } from './registre';
@@ -23,6 +24,7 @@ const modulesConnaissance: ModuleConnaissance[] = [
   moduleRedaction,
   moduleDictionnaire,
   modulepetitdictionnairebiblique,
+  modulesagessevivanteintroductions,
   moduleMethodeOIA,
 ];
 

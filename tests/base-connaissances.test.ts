@@ -7,6 +7,7 @@ import {
   amorcerBaseDeConnaissances,
   analyserReference,
   comparerVersions,
+  commentairesPour,
   dossierReference,
   enregistrerModule,
   enregistrerVersion,
@@ -118,6 +119,16 @@ async function principal(): Promise<void> {
     (jerusalemPDB?.references.length ?? 0) > 0,
     jerusalemPDB?.references.slice(0, 3).map((r) => formaterReference(r)),
   );
+
+  console.log('\nSagesse vivante — introductions');
+  const sv = getSource('sagesse-vivante');
+  verifier('la source des introductions est enregistrée', Boolean(sv), sv?.auteur);
+  for (const livre of ['Cantique des cantiques', 'Job', 'Proverbes', 'Ecclésiaste']) {
+    const commentaires = commentairesPour({ livre, chapitre: 1, verset: 1 }).filter(
+      (c) => c.sourceId === 'sagesse-vivante',
+    );
+    verifier(`l'introduction à ${livre} est rattachée au livre`, commentaires.length > 0, commentaires.length);
+  }
 
   console.log('\nDossier de référence (exemple Jean 3:16)');
   const dossier = dossierReference({ livre: 'Jean', chapitre: 3, verset: 16 });
