@@ -70,6 +70,8 @@ export interface Reglages {
   versionPreferee: string;
   /** Versions affichées côte à côte lors d'une comparaison. */
   versionsComparees: string[];
+  /** Dernier chapitre lu, pour reprendre la lecture où elle s'est arrêtée. */
+  derniereLecture?: { livre: string; chapitre: number };
   /**
    * Service de synthèse que vous hébergez. Laissé vide, l'application reste
    * hors connexion et l'assistant se limite à la restitution des sources.

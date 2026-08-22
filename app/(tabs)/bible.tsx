@@ -69,16 +69,41 @@ export default function Bible() {
       <Etiquette>Bible et base de connaissances</Etiquette>
       <Titre style={{ marginTop: spacing.sm }}>Bibliothèque</Titre>
       <SousTitre style={{ marginTop: spacing.sm }}>
-        {passages.length} passages hors connexion, enrichis de {nombre(base.entrees)} entrées de
-        dictionnaire, {base.commentaires} commentaires et {base.referencesCroisees}{' '}
-        références croisées.
+        {versions.length} versions bibliques hors connexion, enrichies de{' '}
+        {nombre(base.entrees)} entrées de dictionnaire, {nombre(base.commentaires)} commentaires
+        et {nombre(base.referencesCroisees)} références croisées.
       </SousTitre>
 
+      {/* Lire la Bible passe devant le reste : c'est ce qu'on vient y faire. */}
       <Bouton
-        titre="Rechercher dans toute la base"
-        onPress={() => router.push('/recherche')}
+        titre={
+          etat.reglages.derniereLecture
+            ? `Reprendre — ${etat.reglages.derniereLecture.livre} ${etat.reglages.derniereLecture.chapitre}`
+            : 'Lire la Bible'
+        }
+        onPress={() =>
+          router.push(
+            etat.reglages.derniereLecture
+              ? `/lire/${encodeURIComponent(etat.reglages.derniereLecture.livre)}/${etat.reglages.derniereLecture.chapitre}`
+              : '/lire',
+          )
+        }
         style={{ marginTop: spacing.lg }}
       />
+      <View style={{ flexDirection: 'row', gap: spacing.sm, marginTop: spacing.sm }}>
+        <Bouton
+          titre="Choisir un livre"
+          variante="secondaire"
+          onPress={() => router.push('/lire')}
+          style={{ flex: 1 }}
+        />
+        <Bouton
+          titre="Rechercher"
+          variante="secondaire"
+          onPress={() => router.push('/recherche')}
+          style={{ flex: 1 }}
+        />
+      </View>
       <View style={{ flexDirection: 'row', gap: spacing.sm, marginTop: spacing.sm }}>
         <Bouton
           titre="Poser une question"
@@ -95,6 +120,9 @@ export default function Bible() {
       </View>
 
       <Separateur label="Version de lecture" />
+      <SousTitre style={{ marginBottom: spacing.md }}>
+        La version choisie ici est celle qui s'ouvre à la lecture et dans les études.
+      </SousTitre>
 
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm }}>
         {versions.map((v) => (
@@ -144,7 +172,12 @@ export default function Bible() {
         />
       </View>
 
-      <Separateur label={`${resultats.length} passage${resultats.length > 1 ? 's' : ''}`} />
+      <Separateur label="Passages préparés" />
+      <SousTitre style={{ marginBottom: spacing.md }}>
+        {resultats.length} passage{resultats.length > 1 ? 's' : ''} accompagné
+        {resultats.length > 1 ? 's' : ''} d'une fiche de livre, de pistes d'observation et de
+        commentaires — un point de départ pour une étude, quand on ne sait pas où commencer.
+      </SousTitre>
 
       {resultats.length === 0 ? (
         <SousTitre style={{ textAlign: 'center', marginTop: spacing.xl }}>

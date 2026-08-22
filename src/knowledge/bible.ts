@@ -226,6 +226,19 @@ export function livresDeLaVersion(versionId: string): string[] {
   );
 }
 
+/**
+ * Les chapitres qu'une version contient pour un livre donné, dans l'ordre.
+ *
+ * Une version peut n'en couvrir qu'une partie — Parole Vivante s'arrête au
+ * Nouveau Testament, Louange vivante aux Psaumes — et la lecture ne doit
+ * proposer que ce qui existe vraiment.
+ */
+export function chapitresDuLivre(versionId: string, livre: string): number[] {
+  const chargee = versions.get(versionId);
+  const chapitres = chargee?.chapitresParLivre.get(normaliser(livre));
+  return chapitres ? [...chapitres].sort((a, b) => a - b) : [];
+}
+
 export function statistiquesVersion(versionId: string): {
   livres: number;
   chapitres: number;

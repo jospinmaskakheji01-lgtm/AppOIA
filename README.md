@@ -206,9 +206,18 @@ La méthode et son exemple travaillé, le lancement d'une étude libre, la liste
 | Marcher par l'Esprit | 7 | Le fruit de l'Esprit au quotidien |
 
 ### Bible
-**48 passages** (Ancien et Nouveau Testament) en **Louis Segond 1910** (domaine public),
-avec introduction, thèmes, recherche plein texte, favoris et partage. Chaque passage peut
-lancer une étude OIA ou une méditation OIA.
+**La lecture suivie**, d'abord : on choisit une version, puis un livre, puis on lit
+chapitre après chapitre. Les livres proposés sont ceux que la version contient réellement
+— Louange vivante n'offre que les psaumes, Parole Vivante que le Nouveau Testament — et
+les corpus restent séparés, l'Ancien Testament, les livres deutérocanoniques et le
+Nouveau. L'application retient le dernier chapitre lu et propose de reprendre là.
+
+Toucher un verset ouvre son dossier : les autres versions, les commentaires, les mots que
+les ouvrages éclairent. C'est ce qui relie la lecture au reste de la base.
+
+S'y ajoutent **48 passages préparés** — fiche de livre, pistes d'observation,
+commentaires — comme point de départ quand on ne sait pas où commencer. Chacun peut
+lancer une étude OIA ou une méditation.
 
 ### Journal
 Journal spirituel libre (titre, texte, référence liée, humeur) et liste de sujets de

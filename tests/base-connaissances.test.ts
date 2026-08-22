@@ -6,6 +6,7 @@
 import {
   amorcerBaseDeConnaissances,
   analyserReference,
+  chapitresDuLivre,
   comparerVersions,
   commentairesPour,
   conseilPourQuestion,
@@ -16,6 +17,7 @@ import {
   estDeuterocanonique,
   formaterReference,
   getEntree,
+  getPassage,
   getSource,
   livresCanoniques,
   rassemblerContexte,
@@ -260,6 +262,29 @@ async function principal(): Promise<void> {
 
   const parAccent = rechercher('esperance');
   verifier('la recherche est insensible aux accents', parAccent.resultats.length > 0, parAccent.compte);
+
+  console.log('\nLecture suivie');
+  // Lire un livre demande de savoir quels chapitres la version contient : une
+  // version partielle ne doit pas proposer des chapitres qu'elle n'a pas.
+  verifier('la Segond donne les 50 chapitres de la Genèse', chapitresDuLivre('lsg1910', 'Genèse').length === 50);
+  verifier('Parole Vivante ne propose rien en Genèse', chapitresDuLivre('parole-vivante', 'Genèse').length === 0);
+  verifier('Louange vivante donne les 150 psaumes', chapitresDuLivre('louange-vivante', 'Psaumes').length === 150);
+  verifier(
+    'Parole de Vie donne les 14 chapitres de Tobie',
+    chapitresDuLivre('parole-de-vie', 'Tobie').length === 14,
+    chapitresDuLivre('parole-de-vie', 'Tobie').length,
+  );
+  // Les chapitres sont rendus dans l'ordre, sans trou : c'est ce qui permet
+  // d'enchaîner « chapitre suivant » d'un bout à l'autre d'un livre.
+  const suite = chapitresDuLivre('lsg1910', 'Jean');
+  verifier('les chapitres se suivent sans trou', suite.every((n, i) => n === i + 1) && suite.length === 21, suite.length);
+  // Un chapitre entier se lit d'un appel, sans passer par une référence à versets.
+  const jean1 = getPassage('lsg1910', { livre: 'Jean', chapitre: 1 });
+  verifier('un chapitre entier est rendu', jean1.length === 51, jean1.length);
+  verifier(
+    'les versets d’un chapitre sont dans l’ordre',
+    jean1.every((v, i) => v.verset === i + 1),
+  );
 
   console.log('\nCitation exacte');
   for (const [citation, attendu] of [
