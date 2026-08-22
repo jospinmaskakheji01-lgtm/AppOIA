@@ -2,7 +2,7 @@
   "expo": {
     "name": "Lumière",
     "slug": "lumiere",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "scheme": "lumiere",
@@ -22,6 +22,7 @@
     },
     "android": {
       "package": "com.lumiere.meditationbiblique",
+      "versionCode": 2,
       "adaptiveIcon": {
         "backgroundColor": "#1B1B3A",
         "foregroundImage": "./assets/android-icon-foreground.png",
