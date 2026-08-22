@@ -29,6 +29,8 @@ import {
 } from '../../src/data/oia';
 import { getPassage } from '../../src/data/passages';
 import { getJour } from '../../src/data/plans';
+import { analyserReference, dossierReference } from '../../src/knowledge';
+import { CarteEntree } from '../../src/components/oia-connaissance';
 import { useApp } from '../../src/store/AppContext';
 import { fontSize, radius, spacing } from '../../src/theme/theme';
 
@@ -80,6 +82,12 @@ export default function AtelierOIA() {
     const garder = new Set(guide.versets);
     return passage.verses.filter((v) => garder.has(v.n));
   }, [passage, guide]);
+
+  /** Ce que la base de connaissances sait du passage étudié. */
+  const dossier = useMemo(() => {
+    const ref = analyserReference(etude?.reference ?? '');
+    return ref ? dossierReference(ref) : undefined;
+  }, [etude?.reference]);
 
   const progressions = useMemo(
     () => ({
@@ -247,6 +255,19 @@ export default function AtelierOIA() {
         {temps === 'observation' ? (
           <>
             {fiche ? <CarteFicheLivre fiche={fiche} /> : null}
+            {dossier && dossier.entrees.length > 0 ? (
+              <View style={{ marginBottom: spacing.lg }}>
+                <Etiquette>Mots et notions de ce passage</Etiquette>
+                <SousTitre style={{ marginTop: spacing.xs, marginBottom: spacing.md }}>
+                  Ces notices viennent des ouvrages installés. Elles aident à observer,
+                  elles ne remplacent pas votre lecture.
+                </SousTitre>
+                {dossier.entrees.slice(0, 4).map((e) => (
+                  <CarteEntree key={e.id} entree={e} compact />
+                ))}
+              </View>
+            ) : null}
+
             {questionsObservation.map((q) => (
               <ChampOIA
                 key={q.cle}
@@ -298,6 +319,18 @@ export default function AtelierOIA() {
                 hauteur={130}
               />
             ))}
+
+            {dossier && dossier.commentaires.length > 0 ? (
+              <BlocRevelable
+                titre={`Voir les commentaires disponibles (${dossier.commentaires.length})`}
+                debloque={progressions.interpretation > 0}
+                messageVerrou="Écrivez d’abord votre propre réponse : la méthode demande de chercher avant de lire ce que d’autres ont écrit."
+                contenu={dossier.commentaires
+                  .slice(0, 6)
+                  .map((c) => `${c.titre ? `${c.titre} — ` : ''}${c.texte}`)
+                  .join('\n\n')}
+              />
+            ) : null}
 
             {guide?.interpretation.destinataires ? (
               <BlocRevelable

@@ -1,0 +1,217 @@
+/**
+ * Vérification de la base de connaissances.
+ * Lancer avec : npm run test:base
+ */
+
+import {
+  amorcerBaseDeConnaissances,
+  analyserReference,
+  comparerVersions,
+  dossierReference,
+  enregistrerModule,
+  enregistrerVersion,
+  formaterReference,
+  getEntree,
+  rassemblerContexte,
+  rechercher,
+  statistiquesBase,
+  statistiquesVersion,
+  versionsDisponibles,
+} from '../src/knowledge';
+import { AssistantLocal } from '../src/knowledge/assistant';
+
+let echecs = 0;
+function verifier(nom: string, condition: boolean, detail?: unknown): void {
+  if (condition) {
+    console.log(`  ok   ${nom}`);
+  } else {
+    echecs += 1;
+    console.log(`  ÉCHEC ${nom}${detail === undefined ? '' : ` — ${JSON.stringify(detail)}`}`);
+  }
+}
+
+async function principal(): Promise<void> {
+  console.log('\nAmorçage');
+  const rapport = amorcerBaseDeConnaissances();
+  verifier('les modules sont enregistrés', rapport.modules >= 3, rapport.modules);
+  verifier(
+    'aucune anomalie bloquante',
+    rapport.anomalies.every((a) => a.gravite !== 'erreur'),
+    rapport.anomalies,
+  );
+  const droitsAVerifier = rapport.anomalies.filter((a) => a.message.includes('Droits'));
+  verifier('les droits non déterminés sont signalés', droitsAVerifier.length >= 1, droitsAVerifier);
+
+  console.log('\nAnalyse des références');
+  const cas: [string, string | undefined][] = [
+    ['Jean 3:16', 'Jean 3:16'],
+    ['Jn 3.16-21', 'Jean 3:16-21'],
+    ['1 Corinthiens 13', '1 Corinthiens 13'],
+    ['1co 13:4', '1 Corinthiens 13:4'],
+    ['Ps 23', 'Psaumes 23'],
+    ['psaume 23:1', 'Psaumes 23:1'],
+    ['Esaie 40:31', 'Ésaïe 40:31'],
+    ['Luc 8:22-25', 'Luc 8:22-25'],
+    ['Bidule 4:2', undefined],
+  ];
+  for (const [entree, attendu] of cas) {
+    const ref = analyserReference(entree);
+    const obtenu = ref ? formaterReference(ref) : undefined;
+    verifier(`« ${entree} » → ${attendu ?? 'non reconnu'}`, obtenu === attendu, obtenu);
+  }
+
+  console.log('\nVersions bibliques');
+  const versions = versionsDisponibles();
+  verifier('au moins une version installée', versions.length >= 1, versions.length);
+  const stats = statistiquesVersion(versions[0].id);
+  verifier('la version contient des versets', stats.versets > 300, stats);
+  const compare = comparerVersions({ livre: 'Jean', chapitre: 3, verset: 16 });
+  verifier('Jean 3:16 est trouvé', compare[0]?.versets.length === 1, compare[0]?.versets.length);
+  verifier(
+    'le texte de Jean 3:16 est le bon',
+    compare[0]?.versets[0]?.texte.startsWith('Car Dieu a tant aimé le monde'),
+    compare[0]?.versets[0]?.texte.slice(0, 40),
+  );
+
+  console.log('\nRegistre');
+  const base = statistiquesBase();
+  verifier('des entrées de dictionnaire existent', base.entrees > 40, base.entrees);
+  verifier('des commentaires existent', base.commentaires > 100, base.commentaires);
+  verifier('des références croisées existent', base.referencesCroisees > 10, base.referencesCroisees);
+  verifier('des thèmes existent', base.themes > 20, base.themes);
+
+  console.log('\nDossier de référence (exemple Jean 3:16)');
+  const dossier = dossierReference({ livre: 'Jean', chapitre: 3, verset: 16 });
+  verifier('des commentaires sont rattachés', dossier.commentaires.length > 0, dossier.commentaires.length);
+  verifier('des entrées de dictionnaire sont rattachées', dossier.entrees.length > 0, dossier.entrees.length);
+  verifier('des références croisées sont rattachées', dossier.referencesCroisees.length > 0, dossier.referencesCroisees.length);
+  verifier('les sources sont identifiées', dossier.sources.length > 0, dossier.sources.map((s) => s.abreviation));
+
+  console.log('\nRecherche');
+  const parMot = rechercher('pardon');
+  verifier('« pardon » renvoie des résultats', parMot.resultats.length > 0, parMot.compte);
+  verifier('les versets sont présents', parMot.compte.verset > 0, parMot.compte.verset);
+  verifier('les définitions sont présentes', parMot.compte.definition > 0, parMot.compte.definition);
+  verifier(
+    'chaque résultat porte sa nature',
+    parMot.resultats.every((r) => r.nature === 'texte-biblique' || r.nature === 'source-documentaire'),
+  );
+
+  const parReference = rechercher('Jean 3:16');
+  verifier('une référence est détectée', Boolean(parReference.referenceDetectee), parReference.referenceDetectee);
+  verifier(
+    'le verset exact arrive en tête',
+    parReference.resultats[0]?.genre === 'verset',
+    parReference.resultats[0]?.genre,
+  );
+
+  const parGrec = rechercher('agapè');
+  verifier('la recherche par translittération fonctionne', parGrec.compte.definition > 0, parGrec.compte.definition);
+
+  const parAccent = rechercher('esperance');
+  verifier('la recherche est insensible aux accents', parAccent.resultats.length > 0, parAccent.compte);
+
+  console.log('\nQuestions rédigées');
+  const question = rechercher('Que signifie le mot grâce ?');
+  verifier('une question rédigée trouve des versets', question.compte.verset > 0, question.compte);
+  verifier('une question rédigée trouve des définitions', question.compte.definition > 0, question.compte);
+  const exacte = rechercher('lumière du monde');
+  const tete = exacte.resultats.find((r) => r.genre === 'verset');
+  verifier(
+    'une expression exacte remonte le verset qui la contient',
+    tete?.genre === 'verset' && tete.texte.toLowerCase().includes('lumière du monde'),
+    tete?.genre === 'verset' ? tete.libelle : undefined,
+  );
+
+  console.log('\nAssistant local');
+  const assistant = new AssistantLocal();
+  const reponse = await assistant.repondre('Que signifie la grâce ?');
+  verifier('le bloc « texte biblique » est séparé', Array.isArray(reponse.textesBibliques));
+  verifier('le bloc « sources » est séparé', Array.isArray(reponse.extraitsSources));
+  verifier('aucune synthèse IA hors ligne', reponse.synthese === undefined);
+  verifier('des extraits sont retournés', reponse.extraitsSources.length > 0, reponse.extraitsSources.length);
+  verifier(
+    'chaque extrait cite son ouvrage',
+    reponse.extraitsSources.every((e) => Boolean(e.titreOuvrage) && Boolean(e.sourceId)),
+  );
+
+  const vide = rassemblerContexte('xqzwv brplk mtyfd');
+  verifier('une requête sans résultat est signalée', Boolean(vide.avertissement), vide.avertissement);
+
+  console.log('\nIngestion d’un ouvrage supplémentaire');
+  const { moduledicoexemple } = await import('../src/data/modules/dico-exemple');
+  const { moduletestfr } = await import('../src/data/versions/testfr');
+  const avant = statistiquesBase();
+  const anomalies = enregistrerModule(moduledicoexemple);
+  enregistrerVersion(moduletestfr);
+  const apres = statistiquesBase();
+  verifier('le module est accepté', anomalies.every((a) => a.gravite !== 'erreur'), anomalies);
+  verifier('la source est enregistrée', apres.sources === avant.sources + 1, [avant.sources, apres.sources]);
+  verifier('les commentaires sont indexés', apres.commentaires > avant.commentaires, [avant.commentaires, apres.commentaires]);
+
+  const dossierApres = dossierReference({ livre: 'Jean', chapitre: 3, verset: 16 });
+  const sourcesJn316 = dossierApres.sources.map((s) => s.abreviation);
+  verifier('le nouvel ouvrage apparaît sur Jean 3:16', sourcesJn316.includes('DBE'), sourcesJn316);
+  verifier(
+    'les commentaires des deux sources coexistent',
+    new Set(dossierApres.commentaires.map((c) => c.sourceId)).size >= 2,
+    dossierApres.commentaires.map((c) => c.sourceId),
+  );
+
+  console.log('\nComparaison de versions');
+  verifier('deux versions sont installées', versionsDisponibles().length === 2, versionsDisponibles().map((v) => v.abreviation));
+  const cote = comparerVersions({ livre: 'Jean', chapitre: 3, verset: 16 });
+  verifier('les deux versions rendent le verset', cote.filter((c) => !c.absent).length === 2, cote.map((c) => [c.version.abreviation, c.versets.length]));
+  verifier(
+    'les textes diffèrent bien entre versions',
+    cote[0].versets[0]?.texte !== cote[1].versets[0]?.texte,
+  );
+  const absent = comparerVersions({ livre: 'Genèse', chapitre: 1, verset: 1 });
+  verifier(
+    'une version qui ne couvre pas le passage est signalée absente',
+    absent.some((c) => c.absent),
+    absent.map((c) => [c.version.abreviation, c.absent]),
+  );
+
+  console.log('\nFusion de deux sources sur une même entrée');
+  const fusion = enregistrerModule({
+    id: 'test-fusion',
+    source: {
+      id: 'source-fusion',
+      titre: 'Second dictionnaire',
+      langue: 'fr',
+      type: 'dictionnaire',
+      droits: 'domaine-public',
+      abreviation: 'SD',
+      ajouteLe: '2026-08-22',
+    },
+    entrees: [
+      {
+        id: 'grace',
+        terme: 'Grâce',
+        variantes: [],
+        categorie: 'concept',
+        motsOriginaux: [],
+        definitions: [{ texte: 'Autre perspective sur la grâce.', sourceId: 'source-fusion' }],
+        references: [],
+        entreesLiees: [],
+        themes: [],
+      },
+    ],
+  });
+  verifier('la fusion est acceptée', fusion.every((a) => a.gravite !== 'erreur'), fusion);
+  const entreeGrace = getEntree('grace');
+  verifier(
+    'les deux définitions coexistent sur la même entrée',
+    new Set(entreeGrace?.definitions.map((d) => d.sourceId)).size === 2,
+    entreeGrace?.definitions.map((d) => d.sourceId),
+  );
+
+  console.log(echecs === 0 ? '\nTout est vert.\n' : `\n${echecs} échec(s).\n`);
+  process.exit(echecs === 0 ? 0 : 1);
+}
+
+principal().catch((e) => {
+  console.error(e);
+  process.exit(1);
+});

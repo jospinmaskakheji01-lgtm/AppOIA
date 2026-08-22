@@ -236,6 +236,22 @@ export default function Aujourdhui() {
         </SousTitre>
       </Carte>
 
+      <Carte style={{ marginTop: spacing.md }} onPress={() => router.push('/recherche')}>
+        <Etiquette>Base de connaissances</Etiquette>
+        <Text
+          style={{
+            color: t.colors.text,
+            fontSize: fontSize.xl,
+            fontWeight: '700',
+            marginTop: spacing.sm,
+          }}>
+          Chercher un mot, un passage, une notion
+        </Text>
+        <SousTitre style={{ marginTop: spacing.xs }}>
+          Texte biblique, dictionnaire, commentaires et références croisées
+        </SousTitre>
+      </Carte>
+
       <Carte
         style={{ marginTop: spacing.md }}
         onPress={() => router.push('/journal/nouvelle')}>

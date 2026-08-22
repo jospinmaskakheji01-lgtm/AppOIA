@@ -1,0 +1,14 @@
+{
+  "name": "lumiere-serveur-synthese",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Service de synthèse pour Lumière — garde la clé d'API hors de l'application mobile.",
+  "main": "index.mjs",
+  "scripts": {
+    "start": "node index.mjs"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.71.0"
+  }
+}

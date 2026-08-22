@@ -1,0 +1,7 @@
+{
+  "version": { "id": "bad", "abreviation": "B", "nom": "Cassée", "langue": "fr", "droits": "a-verifier", "sourceId": "x" },
+  "versets": [
+    { "livre": "Hobbits", "chapitre": 1, "verset": 1, "texte": "Texte." },
+    { "livre": "Jean", "chapitre": 99, "verset": 1, "texte": "Chapitre inexistant." }
+  ]
+}

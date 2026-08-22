@@ -4,19 +4,37 @@ import { ScrollView, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { IconeCoeur } from '../../src/components/icons';
-import { Carte, Etiquette, Puce, Separateur, SousTitre, Titre } from '../../src/components/ui';
+import {
+  Bouton,
+  Carte,
+  Etiquette,
+  Puce,
+  Separateur,
+  SousTitre,
+  Titre,
+} from '../../src/components/ui';
 import { BIBLE_VERSION, passages, passagesById } from '../../src/data/passages';
+import { statistiquesBase, statistiquesVersion, versionsDisponibles } from '../../src/knowledge';
 import { useApp } from '../../src/store/AppContext';
 import { fontSize, radius, spacing } from '../../src/theme/theme';
 
 type Filtre = 'tous' | 'ancien' | 'nouveau' | 'favoris';
 
 export default function Bible() {
-  const { theme: t, etat } = useApp();
+  const { theme: t, etat, majReglages } = useApp();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const [recherche, setRecherche] = useState('');
   const [filtre, setFiltre] = useState<Filtre>('tous');
+
+  const versions = useMemo(() => versionsDisponibles(), []);
+  const base = useMemo(() => statistiquesBase(), []);
+  const versionActive =
+    versions.find((v) => v.id === etat.reglages.versionPreferee) ?? versions[0];
+  const statsVersion = useMemo(
+    () => (versionActive ? statistiquesVersion(versionActive.id) : undefined),
+    [versionActive],
+  );
 
   const resultats = useMemo(() => {
     const q = recherche.trim().toLowerCase();
@@ -47,11 +65,53 @@ export default function Bible() {
       }}
       keyboardShouldPersistTaps="handled"
       showsVerticalScrollIndicator={false}>
-      <Etiquette>{BIBLE_VERSION}</Etiquette>
+      <Etiquette>Bible et base de connaissances</Etiquette>
       <Titre style={{ marginTop: spacing.sm }}>Bibliothèque</Titre>
       <SousTitre style={{ marginTop: spacing.sm }}>
-        {passages.length} passages disponibles hors connexion, choisis pour la méditation
-        et l’étude.
+        {passages.length} passages hors connexion, enrichis de {base.entrees} entrées de
+        dictionnaire, {base.commentaires} commentaires et {base.referencesCroisees}{' '}
+        références croisées.
+      </SousTitre>
+
+      <Bouton
+        titre="Rechercher dans toute la base"
+        onPress={() => router.push('/recherche')}
+        style={{ marginTop: spacing.lg }}
+      />
+      <View style={{ flexDirection: 'row', gap: spacing.sm, marginTop: spacing.sm }}>
+        <Bouton
+          titre="Poser une question"
+          variante="secondaire"
+          onPress={() => router.push('/assistant')}
+          style={{ flex: 1 }}
+        />
+        <Bouton
+          titre="Sources"
+          variante="discret"
+          onPress={() => router.push('/sources')}
+          style={{ flex: 1 }}
+        />
+      </View>
+
+      <Separateur label="Version de lecture" />
+
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm }}>
+        {versions.map((v) => (
+          <Puce
+            key={v.id}
+            texte={`${v.abreviation} · ${v.annee ?? ''}`.trim()}
+            actif={versionActive?.id === v.id}
+            onPress={() => majReglages({ versionPreferee: v.id })}
+          />
+        ))}
+      </View>
+      <SousTitre style={{ marginTop: spacing.md }}>
+        {versionActive
+          ? `${versionActive.nom} — ${statsVersion?.versets ?? 0} versets installés sur ${statsVersion?.livres ?? 0} livres.`
+          : 'Aucune version installée.'}
+        {versions.length === 1
+          ? ` Une seule version est installée : ajoutez-en une pour comparer les traductions.`
+          : ''}
       </SousTitre>
 
       <TextInput
@@ -95,7 +155,8 @@ export default function Bible() {
         <Carte
           key={p.id}
           style={{ marginBottom: spacing.md }}
-          onPress={() => router.push(`/passage/${p.id}`)}>
+          onPress={() => router.push(`/passage/${p.id}`)}
+          >
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
             <Text style={{ color: t.colors.text, fontSize: fontSize.lg, fontWeight: '700', flex: 1 }}>
               {p.reference}

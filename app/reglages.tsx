@@ -3,6 +3,7 @@ import { Alert, Platform, ScrollView, Switch, Text, TextInput, View } from 'reac
 
 import { Carte, Etiquette, Puce, Separateur, SousTitre, Statistique } from '../src/components/ui';
 import { fichesLivres } from '../src/data/livres';
+import { statistiquesBase, versionsDisponibles } from '../src/knowledge';
 import { BIBLE_VERSION, passages } from '../src/data/passages';
 import { plans, totalJoursDisponibles } from '../src/data/plans';
 import { versets } from '../src/data/versets';
@@ -21,6 +22,10 @@ const TAILLES: { label: string; valeur: number }[] = [
 export default function Reglages() {
   const { theme: t, etat, majReglages, serie } = useApp();
   const [prenom, setPrenom] = useState(etat.reglages.prenom);
+  const [assistantUrl, setAssistantUrl] = useState(etat.reglages.assistantUrl);
+  const [assistantJeton, setAssistantJeton] = useState(etat.reglages.assistantJeton);
+  const versions = versionsDisponibles();
+  const base = statistiquesBase();
 
   const basculerRappel = async (actif: boolean) => {
     if (!actif) {
@@ -170,6 +175,80 @@ export default function Reglages() {
           onPress={() => majReglages({ theme: 'veillee' })}
         />
       </View>
+
+      <Separateur label="Base de connaissances" />
+
+      <SousTitre>Version biblique de lecture</SousTitre>
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginTop: spacing.md }}>
+        {versions.map((v) => (
+          <Puce
+            key={v.id}
+            texte={v.abreviation}
+            actif={etat.reglages.versionPreferee === v.id}
+            onPress={() => majReglages({ versionPreferee: v.id })}
+          />
+        ))}
+      </View>
+      <SousTitre style={{ marginTop: spacing.md }}>
+        {base.sources} sources installées · {base.entrees} entrées de dictionnaire ·{' '}
+        {base.commentaires} commentaires. Les ouvrages s’ajoutent par ingestion : voir
+        docs/BASE-DE-CONNAISSANCES.md.
+      </SousTitre>
+
+      <Separateur label="Service de synthèse (facultatif)" />
+
+      <SousTitre>
+        Par défaut, l’application fonctionne hors connexion et se limite à restituer les
+        sources installées. Vous pouvez brancher un service que vous hébergez pour obtenir
+        en plus une synthèse rédigée. L’application ne stocke aucune clé d’API : c’est
+        votre service qui détient les identifiants du fournisseur.
+      </SousTitre>
+      <TextInput
+        value={assistantUrl}
+        onChangeText={setAssistantUrl}
+        onBlur={() => majReglages({ assistantUrl: assistantUrl.trim() })}
+        placeholder="https://votre-service.exemple/synthese"
+        placeholderTextColor={t.colors.textFaint}
+        autoCapitalize="none"
+        autoCorrect={false}
+        style={{
+          backgroundColor: t.colors.surface,
+          borderRadius: radius.md,
+          borderWidth: 1,
+          borderColor: t.colors.border,
+          paddingHorizontal: spacing.lg,
+          paddingVertical: spacing.md,
+          marginTop: spacing.md,
+          color: t.colors.text,
+          fontSize: fontSize.md,
+        }}
+      />
+      <TextInput
+        value={assistantJeton}
+        onChangeText={setAssistantJeton}
+        onBlur={() => majReglages({ assistantJeton: assistantJeton.trim() })}
+        placeholder="Jeton d’accès à votre service (facultatif)"
+        placeholderTextColor={t.colors.textFaint}
+        autoCapitalize="none"
+        autoCorrect={false}
+        secureTextEntry
+        style={{
+          backgroundColor: t.colors.surface,
+          borderRadius: radius.md,
+          borderWidth: 1,
+          borderColor: t.colors.border,
+          paddingHorizontal: spacing.lg,
+          paddingVertical: spacing.md,
+          marginTop: spacing.sm,
+          color: t.colors.text,
+          fontSize: fontSize.md,
+        }}
+      />
+      <SousTitre style={{ marginTop: spacing.md }}>
+        {etat.reglages.assistantUrl
+          ? `Service configuré. Les réponses distingueront le texte biblique, les extraits d’ouvrages et la synthèse.`
+          : `Aucun service configuré : l’application reste entièrement hors connexion.`}
+      </SousTitre>
 
       <Separateur label="À propos" />
 

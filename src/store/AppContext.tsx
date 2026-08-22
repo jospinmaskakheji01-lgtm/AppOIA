@@ -66,6 +66,17 @@ export interface Reglages {
   rappelHeure: string;
   tailleTexte: number;
   prenom: string;
+  /** Version biblique préférée pour la lecture. */
+  versionPreferee: string;
+  /** Versions affichées côte à côte lors d'une comparaison. */
+  versionsComparees: string[];
+  /**
+   * Service de synthèse que vous hébergez. Laissé vide, l'application reste
+   * hors connexion et l'assistant se limite à la restitution des sources.
+   */
+  assistantUrl: string;
+  assistantJeton: string;
+  assistantModele: string;
 }
 
 export interface EtatApp {
@@ -97,6 +108,11 @@ const ETAT_INITIAL: EtatApp = {
     rappelHeure: '07:00',
     tailleTexte: 1,
     prenom: '',
+    versionPreferee: 'lsg1910',
+    versionsComparees: [],
+    assistantUrl: '',
+    assistantJeton: '',
+    assistantModele: 'claude-opus-5',
   },
 };
 

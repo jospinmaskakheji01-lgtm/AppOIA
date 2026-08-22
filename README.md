@@ -36,6 +36,80 @@ prière à répéter, un commandement à obéir, une condition à remplir, une e
 avec les sept réponses d'observation, l'interprétation et l'application. Accessible à
 tout moment depuis l'onglet Étudier.
 
+## Base de connaissances
+
+L'application n'est pas seulement un lecteur de versets : c'est une base de connaissances
+bibliques que l'on **enrichit par ingestion de documents**, sans refonte à chaque ajout.
+
+```
+Nouveau document → Analyse → Extraction → Structuration → Vérification → Intégration → Test
+```
+
+### Ce qu'elle relie
+
+```
+Jean 3:16
+ ├── texte biblique          dans chaque version installée
+ ├── mots et notions         entrées de dictionnaire citant le passage
+ ├── commentaires            contexte, histoire, théologie, application
+ ├── références croisées     avec le type de relation
+ ├── thèmes                  regroupements transverses
+ └── sources                 titre, auteur, page, statut des droits
+```
+
+Chaque information porte **sa source** et **sa nature**. L'application ne mélange jamais :
+
+| Nature | Origine | Affichage |
+| --- | --- | --- |
+| `texte-biblique` | une version installée | badge bleu, abréviation de la version |
+| `source-documentaire` | un ouvrage | badge doré, titre, auteur, page |
+| `synthese-ia` | un modèle de langage | badge gris, modèle nommé, mention explicite |
+
+### Multi-versions
+
+L'architecture est `Bible → Version → Livre → Chapitre → Verset`. Une version est un
+module autonome : l'ajouter ne demande qu'un import et une ligne dans `bootstrap.ts`.
+L'utilisateur choisit sa version de lecture, et les passages s'affichent côte à côte dès
+que plusieurs versions sont installées.
+
+### Recherche
+
+Une requête interroge simultanément le texte biblique, le dictionnaire, les commentaires
+et les thèmes, avec filtres par catégorie. Elle reconnaît les références écrites
+librement (`Jn 3.16`, `1co 13:4`, `Ps 23`), ignore les accents, comprend les questions
+rédigées, et fait remonter les expressions exactes.
+
+### Assistant
+
+Par défaut, l'assistant fonctionne **hors connexion** : il restitue le texte biblique et
+les extraits d'ouvrages, sans rien générer. Une synthèse rédigée peut être ajoutée en
+configurant l'adresse d'un service que vous hébergez (`serveur/`, implémentation de
+référence fournie). L'application n'embarque aucune clé d'API — elle serait extractible
+du paquet installé. Le service ne renvoyant que la synthèse, la séparation des trois
+natures est garantie par l'architecture et non par la bonne volonté du modèle.
+
+### Ajouter un document
+
+```bash
+npm run importer:version  mon-fichier.json    # une version biblique
+npm run importer:document  mon-ouvrage.json   # dictionnaire, commentaire, étude…
+npm run test:base                             # vérifie l'intégration
+```
+
+Les importateurs valident les références, refusent les livres inconnus, signalent les
+droits à vérifier et génèrent le module. Deux ouvrages traitant du même terme produisent
+**une entrée à deux définitions**, chacune attribuée à sa source : les perspectives
+divergentes sont conservées, jamais fusionnées.
+
+Le déroulé complet, les formats d'entrée et le tableau des droits sont dans
+[`docs/BASE-DE-CONNAISSANCES.md`](docs/BASE-DE-CONNAISSANCES.md).
+
+### Contenu actuel
+
+48 passages en Louis Segond 1910 · 31 entrées de dictionnaire avec hébreu, grec et
+numéros Strong · 24 fiches de livres · plus de 200 commentaires · plus de 100 références
+croisées · 3 sources déclarées, dont le document de méthode OIA.
+
 ## Comment l'application applique la méthode
 
 - **L'atelier OIA** est l'écran central : trois temps navigables, un champ par question,
@@ -106,6 +180,7 @@ Prénom, rappel quotidien par notification, taille du texte biblique, ambiance c
 npm install
 npx expo start        # puis « a » pour Android, « i » pour iOS, « w » pour le web
 npm run lint          # tsc --noEmit
+npm run test:base     # vérifie la base de connaissances (references, index, recherche, ingestion)
 ```
 
 Construire un bundle de production :
@@ -129,6 +204,17 @@ app/                        Routes (expo-router)
   journal/, prieres.tsx     Journal et sujets de prière
   reglages.tsx              Réglages et statistiques
 src/
+  knowledge/                La base de connaissances
+    types.ts                sources, entrées, commentaires, relations, modules
+    reference.ts            canon des 66 livres, analyse et normalisation des références
+    bible.ts                Bible → Version → Livre → Chapitre → Verset ; comparaison
+    registre.ts             index, fusion des sources, dossier d'un passage
+    recherche.ts            moteur unifié
+    assistant.ts            les trois blocs de réponse ; assistant local et distant
+    bootstrap.ts            la liste des modules installés
+  data/sources.ts           registre des sources et de leurs droits
+  data/versions/            une version biblique par fichier
+  data/modules/             un ouvrage ingéré par fichier
   data/oia.ts               La méthode : questions, sous-questions, exemple travaillé
   data/livres.ts            24 fiches de livres, au service de l'Observation
   data/plans.ts             7 plans, 52 journées structurées en OIA

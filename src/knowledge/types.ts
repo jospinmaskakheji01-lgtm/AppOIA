@@ -1,0 +1,225 @@
+/**
+ * Modèle de la base de connaissances bibliques.
+ *
+ * Trois principes structurent ce fichier :
+ *
+ * 1. **Traçabilité** — toute connaissance porte l'identifiant de la source dont
+ *    elle provient (`sourceId`) et, quand c'est possible, sa localisation dans
+ *    l'ouvrage (page, article, section).
+ * 2. **Séparation des natures** — le texte biblique, le contenu issu d'un
+ *    ouvrage et l'interprétation produite par une IA sont trois catégories
+ *    distinctes qui ne doivent jamais être confondues (voir `NatureContenu`).
+ * 3. **Extensibilité** — la connaissance arrive par modules indépendants
+ *    (`ModuleConnaissance`). Ajouter un ouvrage consiste à déposer un module et
+ *    à l'enregistrer, sans toucher au reste de l'application.
+ */
+
+/** Ce qu'une information *est*, indépendamment de ce qu'elle dit. */
+export type NatureContenu =
+  /** Le texte biblique lui-même, dans une version donnée. */
+  | 'texte-biblique'
+  /** Le contenu d'un ouvrage : dictionnaire, commentaire, étude, enseignement. */
+  | 'source-documentaire'
+  /** Une synthèse produite par un modèle de langage. */
+  | 'synthese-ia';
+
+export type TypeSource =
+  | 'bible'
+  | 'dictionnaire'
+  | 'commentaire'
+  | 'etude'
+  | 'theologie'
+  | 'enseignement'
+  | 'redaction-interne';
+
+/** Statut d'utilisation d'une source, du point de vue des droits. */
+export type StatutDroits =
+  /** Domaine public : reproduction intégrale possible. */
+  | 'domaine-public'
+  /** Licence libre compatible avec la redistribution. */
+  | 'licence-libre'
+  /** Sous droits : seules des références et de courtes citations sont stockées. */
+  | 'sous-droits'
+  /** Produit pour l'application, droits détenus par l'éditeur de l'application. */
+  | 'interne'
+  /** Droits non déterminés : la source est enregistrée mais non redistribuable. */
+  | 'a-verifier';
+
+export interface Source {
+  id: string;
+  titre: string;
+  auteur?: string;
+  editeur?: string;
+  annee?: string;
+  langue: string;
+  type: TypeSource;
+  droits: StatutDroits;
+  /** Précision libre sur la licence, la provenance, ou les limites d'usage. */
+  noteDroits?: string;
+  /** Nom du fichier d'origine, pour retrouver le document transmis. */
+  documentOrigine?: string;
+  ajouteLe: string;
+  /** Abréviation affichée à côté des extraits, ex. « LSG », « DB ». */
+  abreviation: string;
+}
+
+/** Où se trouve une information à l'intérieur de son ouvrage. */
+export interface Localisation {
+  page?: string;
+  chapitre?: string;
+  section?: string;
+  article?: string;
+}
+
+/** Référence biblique normalisée. `versetFin` absent = un seul verset. */
+export interface ReferenceBiblique {
+  livre: string;
+  chapitre: number;
+  verset?: number;
+  versetFin?: number;
+}
+
+// ————————————————————————————————————————————————————————————
+// Dictionnaire
+// ————————————————————————————————————————————————————————————
+
+export type CategorieEntree =
+  | 'terme'
+  | 'personnage'
+  | 'lieu'
+  | 'objet'
+  | 'evenement'
+  | 'concept'
+  | 'theme'
+  | 'livre';
+
+export type LangueOriginale = 'hébreu' | 'grec' | 'araméen';
+
+export interface MotOriginal {
+  langue: LangueOriginale;
+  mot: string;
+  translitteration: string;
+  /** Numéro Strong, quand la source le fournit. */
+  strong?: string;
+  sensLitteral?: string;
+}
+
+export interface DefinitionEntree {
+  /** Le texte de la définition, tel que la source le donne. */
+  texte: string;
+  sourceId: string;
+  localisation?: Localisation;
+  /** Nuance ou acception particulière, quand la source en distingue plusieurs. */
+  nuance?: string;
+}
+
+export interface EntreeDictionnaire {
+  id: string;
+  terme: string;
+  /** Formes alternatives : graphies, pluriels, synonymes, noms grecs ou latins. */
+  variantes: string[];
+  categorie: CategorieEntree;
+  motsOriginaux: MotOriginal[];
+  /**
+   * Plusieurs définitions coexistent volontairement : quand deux ouvrages
+   * divergent, les deux perspectives sont conservées avec leur source.
+   */
+  definitions: DefinitionEntree[];
+  /** Passages où le terme ou la réalité apparaît. */
+  references: ReferenceBiblique[];
+  /** Identifiants d'autres entrées liées. */
+  entreesLiees: string[];
+  themes: string[];
+}
+
+// ————————————————————————————————————————————————————————————
+// Commentaires
+// ————————————————————————————————————————————————————————————
+
+export type TypeCommentaire =
+  | 'contexte'
+  | 'historique'
+  | 'theologique'
+  | 'pratique'
+  | 'linguistique'
+  | 'structure';
+
+export interface Commentaire {
+  id: string;
+  reference: ReferenceBiblique;
+  /** Portée du commentaire, quand il couvre plusieurs versets. */
+  referenceFin?: ReferenceBiblique;
+  type: TypeCommentaire;
+  titre?: string;
+  texte: string;
+  sourceId: string;
+  localisation?: Localisation;
+  /** Auteur du commentaire, s'il diffère de l'auteur de l'ouvrage. */
+  auteur?: string;
+  /**
+   * Quand un passage reçoit plusieurs lectures, chacune est enregistrée
+   * séparément et ce champ nomme la position défendue.
+   */
+  position?: string;
+  themes: string[];
+}
+
+// ————————————————————————————————————————————————————————————
+// Relations
+// ————————————————————————————————————————————————————————————
+
+export type TypeRelation =
+  | 'citation'
+  | 'accomplissement'
+  | 'parallele'
+  | 'contraste'
+  | 'developpement'
+  | 'allusion'
+  | 'theme-commun';
+
+export interface ReferenceCroisee {
+  id: string;
+  de: ReferenceBiblique;
+  vers: ReferenceBiblique;
+  relation: TypeRelation;
+  note?: string;
+  sourceId: string;
+}
+
+export interface ThemeBiblique {
+  id: string;
+  nom: string;
+  description: string;
+  /** Termes-clés du thème, servant la recherche. */
+  motsCles: string[];
+  references: ReferenceBiblique[];
+  entrees: string[];
+  sourceId: string;
+}
+
+// ————————————————————————————————————————————————————————————
+// Modules
+// ————————————————————————————————————————————————————————————
+
+/**
+ * Unité d'ingestion. Un document transmis produit un ou plusieurs modules ;
+ * l'enregistrement d'un module suffit à rendre son contenu interrogeable.
+ */
+export interface ModuleConnaissance {
+  id: string;
+  /** La source dont ce module extrait sa connaissance. */
+  source: Source;
+  entrees?: EntreeDictionnaire[];
+  commentaires?: Commentaire[];
+  referencesCroisees?: ReferenceCroisee[];
+  themes?: ThemeBiblique[];
+  /** Version que ce module installe, pour les modules de type « bible ». */
+  versionId?: string;
+}
+
+/** Anomalie détectée à la vérification d'un module. */
+export interface AnomalieModule {
+  gravite: 'erreur' | 'avertissement';
+  message: string;
+  element?: string;
+}

@@ -1,0 +1,17 @@
+{
+  "version": {
+    "id": "testfr",
+    "abreviation": "TST",
+    "nom": "Version de test",
+    "langue": "fr",
+    "annee": "2026",
+    "droits": "domaine-public",
+    "couverture": "partielle",
+    "sourceId": "bible-test"
+  },
+  "versets": [
+    { "livre": "Jean", "chapitre": 3, "verset": 16, "texte": "Oui, Dieu a tellement aimé le monde qu'il a donné son Fils unique." },
+    { "livre": "Jn", "chapitre": 3, "verset": 17, "texte": "Car Dieu n'a pas envoyé son Fils pour condamner le monde." },
+    { "livre": "Ps", "chapitre": 23, "verset": 1, "texte": "Le Seigneur est mon berger, je ne manque de rien." }
+  ]
+}

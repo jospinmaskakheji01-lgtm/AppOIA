@@ -1,0 +1,49 @@
+{
+  "module": { "id": "dico-exemple" },
+  "source": {
+    "id": "dico-exemple",
+    "titre": "Dictionnaire biblique d'exemple",
+    "auteur": "A. Auteur",
+    "annee": "1900",
+    "langue": "fr",
+    "type": "dictionnaire",
+    "droits": "domaine-public",
+    "abreviation": "DBE",
+    "documentOrigine": "dictionnaire-exemple.pdf"
+  },
+  "entrees": [
+    {
+      "id": "dbe-berger",
+      "terme": "Berger",
+      "categorie": "concept",
+      "variantes": ["pasteur"],
+      "motsOriginaux": [{ "langue": "hébreu", "mot": "רֹעֶה", "translitteration": "roeh" }],
+      "definitions": [{ "texte": "Celui qui garde le troupeau ; image du roi et de Dieu lui-même.", "localisation": { "page": "142" } }],
+      "references": ["Ps 23:1", "Jn 10:11"],
+      "themes": ["pastorale"]
+    }
+  ],
+  "commentaires": [
+    {
+      "id": "dbe-c1",
+      "reference": "Jean 3.16",
+      "type": "theologique",
+      "titre": "L'amour du Père",
+      "texte": "Le verbe employé marque un don définitif, non un prêt.",
+      "localisation": { "page": "88" },
+      "themes": ["amour"]
+    },
+    {
+      "reference": "Psaume 23",
+      "type": "contexte",
+      "texte": "Psaume attribué à David, construit sur deux images successives.",
+      "localisation": { "page": "203" }
+    }
+  ],
+  "themes": [
+    { "id": "dbe-t1", "nom": "Pastorale", "description": "Dieu comme berger de son peuple.", "motsCles": ["berger", "troupeau"], "references": ["Ps 23", "Es 40:11"] }
+  ],
+  "referencesCroisees": [
+    { "de": "Ps 23:1", "vers": "Jn 10:11", "relation": "parallele", "note": "Le berger" }
+  ]
+}
