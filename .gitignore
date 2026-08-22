@@ -42,3 +42,4 @@ yarn-error.*
 
 # Les extractions de texte sont régénérables : npm run extraire documents/
 documents/*.txt
+.apercu/
