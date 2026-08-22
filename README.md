@@ -54,7 +54,7 @@ Jean 3:16
  ├── commentaires            contexte, histoire, théologie, application
  ├── références croisées     avec le type de relation
  ├── thèmes                  regroupements transverses
- └── sources                 titre, auteur, page, statut des droits
+ └── sources                 titre, auteur, page
 ```
 
 Chaque information porte **sa source** et **sa nature**. L'application ne mélange jamais :
@@ -96,12 +96,12 @@ npm run importer:document  mon-ouvrage.json   # dictionnaire, commentaire, étud
 npm run test:base                             # vérifie l'intégration
 ```
 
-Les importateurs valident les références, refusent les livres inconnus, signalent les
-droits à vérifier et génèrent le module. Deux ouvrages traitant du même terme produisent
+Les importateurs valident la structure — références résolues, livres du canon, chapitres
+dans les bornes — et génèrent le module. Deux ouvrages traitant du même terme produisent
 **une entrée à deux définitions**, chacune attribuée à sa source : les perspectives
 divergentes sont conservées, jamais fusionnées.
 
-Le déroulé complet, les formats d'entrée et le tableau des droits sont dans
+Le déroulé complet et les formats d'entrée sont dans
 [`docs/BASE-DE-CONNAISSANCES.md`](docs/BASE-DE-CONNAISSANCES.md).
 
 ### Contenu actuel
@@ -212,7 +212,7 @@ src/
     recherche.ts            moteur unifié
     assistant.ts            les trois blocs de réponse ; assistant local et distant
     bootstrap.ts            la liste des modules installés
-  data/sources.ts           registre des sources et de leurs droits
+  data/sources.ts           registre des sources documentaires
   data/versions/            une version biblique par fichier
   data/modules/             un ouvrage ingéré par fichier
   data/oia.ts               La méthode : questions, sous-questions, exemple travaillé

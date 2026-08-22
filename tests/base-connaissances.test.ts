@@ -39,8 +39,11 @@ async function principal(): Promise<void> {
     rapport.anomalies.every((a) => a.gravite !== 'erreur'),
     rapport.anomalies,
   );
-  const droitsAVerifier = rapport.anomalies.filter((a) => a.message.includes('Droits'));
-  verifier('les droits non déterminés sont signalés', droitsAVerifier.length >= 1, droitsAVerifier);
+  verifier(
+    'aucune anomalie liée à la provenance',
+    !rapport.anomalies.some((a) => /droit|licence|provenance/i.test(a.message)),
+    rapport.anomalies,
+  );
 
   console.log('\nAnalyse des références');
   const cas: [string, string | undefined][] = [
@@ -181,7 +184,6 @@ async function principal(): Promise<void> {
       titre: 'Second dictionnaire',
       langue: 'fr',
       type: 'dictionnaire',
-      droits: 'domaine-public',
       abreviation: 'SD',
       ajouteLe: '2026-08-22',
     },

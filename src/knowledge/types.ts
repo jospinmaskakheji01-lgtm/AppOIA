@@ -32,18 +32,17 @@ export type TypeSource =
   | 'enseignement'
   | 'redaction-interne';
 
-/** Statut d'utilisation d'une source, du point de vue des droits. */
-export type StatutDroits =
-  /** Domaine public : reproduction intégrale possible. */
+/**
+ * Provenance d'une source, à titre purement documentaire.
+ * Ce champ est facultatif et n'a aucun effet sur l'ingestion ni sur
+ * l'affichage : il sert uniquement à qui veut noter d'où vient un ouvrage.
+ */
+export type Provenance =
   | 'domaine-public'
-  /** Licence libre compatible avec la redistribution. */
   | 'licence-libre'
-  /** Sous droits : seules des références et de courtes citations sont stockées. */
   | 'sous-droits'
-  /** Produit pour l'application, droits détenus par l'éditeur de l'application. */
   | 'interne'
-  /** Droits non déterminés : la source est enregistrée mais non redistribuable. */
-  | 'a-verifier';
+  | 'non-precisee';
 
 export interface Source {
   id: string;
@@ -53,9 +52,10 @@ export interface Source {
   annee?: string;
   langue: string;
   type: TypeSource;
-  droits: StatutDroits;
-  /** Précision libre sur la licence, la provenance, ou les limites d'usage. */
-  noteDroits?: string;
+  /** Facultatif : provenance de l'ouvrage, pour mémoire. */
+  provenance?: Provenance;
+  /** Facultatif : note libre sur l'origine de l'ouvrage. */
+  noteProvenance?: string;
   /** Nom du fichier d'origine, pour retrouver le document transmis. */
   documentOrigine?: string;
   ajouteLe: string;

@@ -8,8 +8,8 @@
  * Format attendu — voir docs/BASE-DE-CONNAISSANCES.md :
  * {
  *   "module":  { "id": "..." },
- *   "source":  { "id", "titre", "auteur", "annee", "langue", "type", "droits",
- *                "abreviation", "documentOrigine", "noteDroits" },
+ *   "source":  { "id", "titre", "auteur", "annee", "langue", "type",
+ *                "abreviation", "documentOrigine", "provenance"? },
  *   "entrees":             [ ... entrées de dictionnaire ],
  *   "commentaires":        [ ... commentaires, référence en texte libre ],
  *   "themes":              [ ... ],
@@ -34,7 +34,6 @@ if (!fichier) {
 }
 
 const TYPES = ['bible', 'dictionnaire', 'commentaire', 'etude', 'theologie', 'enseignement', 'redaction-interne'];
-const DROITS = ['domaine-public', 'licence-libre', 'sous-droits', 'interne', 'a-verifier'];
 const CATEGORIES = ['terme', 'personnage', 'lieu', 'objet', 'evenement', 'concept', 'theme', 'livre'];
 const TYPES_COMMENTAIRE = ['contexte', 'historique', 'theologique', 'pratique', 'linguistique', 'structure'];
 
@@ -49,19 +48,10 @@ const moduleId = brut.module?.id ?? `${source.id ?? 'module'}-v1`;
 const erreurs = [];
 const avertissements = [];
 
-for (const champ of ['id', 'titre', 'langue', 'type', 'droits', 'abreviation']) {
+for (const champ of ['id', 'titre', 'langue', 'type', 'abreviation']) {
   if (!source[champ]) erreurs.push(`source.${champ} est obligatoire.`);
 }
 if (source.type && !TYPES.includes(source.type)) erreurs.push(`source.type doit valoir : ${TYPES.join(', ')}.`);
-if (source.droits && !DROITS.includes(source.droits)) erreurs.push(`source.droits doit valoir : ${DROITS.join(', ')}.`);
-if (source.droits === 'a-verifier') {
-  avertissements.push(`Droits non déterminés : le contenu sera indexé mais marqué non redistribuable.`);
-}
-if (source.droits === 'sous-droits') {
-  avertissements.push(
-    `Ouvrage sous droits : ne stockez que des renvois et de courtes citations, pas le texte intégral.`,
-  );
-}
 
 /** Normalise une référence écrite librement ; renvoie null si irrésoluble. */
 function normaliserRef(brute, contexte) {
@@ -158,7 +148,7 @@ const referencesCroisees = (brut.referencesCroisees ?? [])
   .filter(Boolean);
 
 console.log(`\nOuvrage   ${source.titre ?? '?'}${source.auteur ? ` — ${source.auteur}` : ''}`);
-console.log(`Type      ${source.type ?? '?'}   Droits : ${source.droits ?? '?'}`);
+console.log(`Type      ${source.type ?? '?'}`);
 console.log(`Extrait   ${entrees.length} entrées · ${commentaires.length} commentaires · ${themes.length} thèmes · ${referencesCroisees.length} références croisées`);
 
 const exemples = commentaires.slice(0, 3).map((c) => formaterReference(c.reference));
@@ -177,8 +167,6 @@ const nomExport = `module${moduleId.replace(/[^A-Za-z0-9]/g, '')}`;
 const contenu = `/**
  * ${source.titre}${source.auteur ? ` — ${source.auteur}` : ''}
  * Généré par scripts/importer-document.mjs à partir de ${path.basename(fichier)}.
- *
- * Droits : ${source.droits}${source.noteDroits ? ` — ${source.noteDroits}` : ''}
  */
 
 import { ModuleConnaissance, Source } from '../../knowledge/types';

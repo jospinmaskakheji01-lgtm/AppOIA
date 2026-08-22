@@ -1,11 +1,6 @@
 /**
  * Dictionnaire biblique d'exemple — A. Auteur
- * Généré par scripts/importer-document.mjs à partir de doc-test.json.
- *
- * Droits : domaine-public
- *
- * Fixture d'exemple, non enregistrée dans bootstrap.ts. Elle sert à
- * démontrer et tester le pipeline d'ingestion (tests/fixtures/exemple-dictionnaire.json).
+ * Généré par scripts/importer-document.mjs à partir de exemple-dictionnaire.json.
  */
 
 import { ModuleConnaissance, Source } from '../../knowledge/types';
@@ -17,9 +12,9 @@ export const sourcemoduledicoexemple: Source = {
   "annee": "1900",
   "langue": "fr",
   "type": "dictionnaire",
-  "droits": "domaine-public",
   "abreviation": "DBE",
   "documentOrigine": "dictionnaire-exemple.pdf",
+  "provenance": "domaine-public",
   "ajouteLe": "2026-08-22"
 };
 

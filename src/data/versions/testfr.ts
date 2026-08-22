@@ -1,10 +1,6 @@
 /**
  * Version de test — version importée.
- * Généré par scripts/importer-version.mjs à partir de version-test.json.
- * Droits : domaine-public
- *
- * Fixture d'exemple, non enregistrée dans bootstrap.ts. Elle sert à
- * démontrer et tester la comparaison de versions (tests/fixtures/exemple-version.json).
+ * Généré par scripts/importer-version.mjs à partir de exemple-version.json.
  */
 
 import { ModuleVersion, VersetTexte, VersionBible } from '../../knowledge/bible';
@@ -15,9 +11,9 @@ export const versiontestfr: VersionBible = {
   "nom": "Version de test",
   "langue": "fr",
   "annee": "2026",
-  "droits": "domaine-public",
   "couverture": "partielle",
-  "sourceId": "bible-test"
+  "sourceId": "bible-test",
+  "provenance": "domaine-public"
 };
 
 const versets: VersetTexte[] = [

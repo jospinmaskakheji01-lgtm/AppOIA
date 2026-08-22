@@ -13,7 +13,7 @@ import {
   normaliser,
   trouverLivre,
 } from './reference';
-import { ReferenceBiblique, Source, StatutDroits } from './types';
+import { Provenance, ReferenceBiblique, Source } from './types';
 
 export interface VersionBible {
   id: string;
@@ -22,8 +22,9 @@ export interface VersionBible {
   nom: string;
   langue: string;
   annee?: string;
-  droits: StatutDroits;
-  noteDroits?: string;
+  /** Facultatif : provenance de la version, pour mémoire. */
+  provenance?: Provenance;
+  noteProvenance?: string;
   /** Une version peut n'être installée que partiellement. */
   couverture: 'complete' | 'partielle';
   /** Identifiant de la source documentaire correspondante. */
@@ -232,8 +233,8 @@ export function sourceDeVersion(version: VersionBible, ajouteLe: string): Source
     langue: version.langue,
     annee: version.annee,
     type: 'bible',
-    droits: version.droits,
-    noteDroits: version.noteDroits,
+    provenance: version.provenance,
+    noteProvenance: version.noteProvenance,
     abreviation: version.abreviation,
     ajouteLe,
   };

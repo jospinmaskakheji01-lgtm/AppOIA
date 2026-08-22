@@ -5,9 +5,8 @@
  * Ajouter un ouvrage transmis consiste à déclarer sa fiche ici, puis à
  * enregistrer le ou les modules qui en extraient le contenu.
  *
- * Le champ `droits` conditionne ce que l'application a le droit de stocker :
- * un ouvrage `sous-droits` ne doit contenir que des renvois et de courtes
- * citations, jamais une reproduction intégrale.
+ * Le champ `provenance` est facultatif et purement documentaire : il note
+ * d'où vient un ouvrage, sans rien conditionner.
  */
 
 import { Source } from '../knowledge/types';
@@ -24,8 +23,7 @@ export const sources: Source[] = [
     annee: '1910',
     langue: 'fr',
     type: 'bible',
-    droits: 'domaine-public',
-    noteDroits: `Domaine public. Reproduction intégrale autorisée.`,
+    provenance: 'domaine-public',
     abreviation: 'LSG',
     ajouteLe: '2026-08-21',
   },
@@ -34,8 +32,8 @@ export const sources: Source[] = [
     titre: 'Notes de rédaction Lumière',
     langue: 'fr',
     type: 'redaction-interne',
-    droits: 'interne',
-    noteDroits: `Contenu écrit pour l'application. Il est signalé comme tel et ne se substitue pas à un ouvrage de référence.`,
+    provenance: 'interne',
+    noteProvenance: `Contenu écrit pour l'application. Il est signalé comme tel et ne se substitue pas à un ouvrage de référence.`,
     abreviation: 'Lum.',
     ajouteLe: '2026-08-21',
   },
@@ -44,8 +42,7 @@ export const sources: Source[] = [
     titre: 'Méthode OIA — Observation, Interprétation, Application',
     langue: 'fr',
     type: 'enseignement',
-    droits: 'a-verifier',
-    noteDroits: `Document d'enseignement transmis par l'utilisateur (MODALITE_METHODE_OIA). Usage interne à l'application ; vérifier les droits avant toute diffusion.`,
+    noteProvenance: `Document d'enseignement transmis par l'utilisateur (MODALITE_METHODE_OIA).`,
     documentOrigine: 'MODALITE_METHODE_OIA.pdf',
     abreviation: 'OIA',
     ajouteLe: '2026-08-22',

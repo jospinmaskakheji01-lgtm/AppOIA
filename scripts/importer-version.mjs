@@ -6,8 +6,8 @@
  *
  * Format attendu — voir docs/BASE-DE-CONNAISSANCES.md :
  * {
- *   "version": { "id", "abreviation", "nom", "langue", "annee", "droits",
- *                "couverture", "sourceId", "noteDroits" },
+ *   "version": { "id", "abreviation", "nom", "langue", "annee",
+ *                "couverture", "sourceId", "provenance"? },
  *   "source":  { ...fiche source complète (facultatif : déduite de la version) },
  *   "versets": [ { "livre", "chapitre", "verset", "texte" }, ... ]
  * }
@@ -29,8 +29,6 @@ if (!fichier) {
   process.exit(1);
 }
 
-const DROITS = ['domaine-public', 'licence-libre', 'sous-droits', 'interne', 'a-verifier'];
-
 function echapper(texte) {
   return String(texte).replace(/\\/g, '\\\\').replace(/`/g, '\\`').replace(/\$\{/g, '\\${');
 }
@@ -44,21 +42,8 @@ const versets = brut.versets ?? [];
 const erreurs = [];
 const avertissements = [];
 
-for (const champ of ['id', 'abreviation', 'nom', 'langue', 'droits', 'sourceId']) {
+for (const champ of ['id', 'abreviation', 'nom', 'langue', 'sourceId']) {
   if (!version[champ]) erreurs.push(`version.${champ} est obligatoire.`);
-}
-if (version.droits && !DROITS.includes(version.droits)) {
-  erreurs.push(`version.droits doit valoir : ${DROITS.join(', ')}.`);
-}
-if (version.droits === 'a-verifier') {
-  avertissements.push(
-    `Droits non déterminés : la version sera indexée mais ne doit pas être redistribuée tant que la licence n'est pas vérifiée.`,
-  );
-}
-if (version.droits === 'sous-droits') {
-  avertissements.push(
-    `Version sous droits : vérifiez que votre licence autorise l'inclusion du texte intégral dans une application distribuée.`,
-  );
 }
 if (!Array.isArray(versets) || versets.length === 0) erreurs.push('Aucun verset fourni.');
 
@@ -105,7 +90,7 @@ if (doublons.size) {
 console.log(`\nVersion   ${version.nom ?? '?'} (${version.abreviation ?? '?'})`);
 console.log(`Versets   ${versets.length}`);
 console.log(`Livres    ${new Set(versets.map((v) => trouverLivre(String(v.livre ?? ''))?.nom).filter(Boolean)).size}`);
-console.log(`Droits    ${version.droits ?? '?'}`);
+
 
 for (const a of avertissements) console.log(`\n  ⚠  ${a}`);
 for (const e of erreurs) console.log(`\n  ✕  ${e}`);
@@ -126,7 +111,6 @@ const lignes = versets
 const contenu = `/**
  * ${version.nom} — version importée.
  * Généré par scripts/importer-version.mjs à partir de ${path.basename(fichier)}.
- * Droits : ${version.droits}${version.noteDroits ? ` — ${version.noteDroits}` : ''}
  */
 
 import { ModuleVersion, VersetTexte, VersionBible } from '../../knowledge/bible';

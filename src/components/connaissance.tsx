@@ -63,7 +63,6 @@ export function LigneSource({
         lineHeight: 17,
       }}>
       {parties.join(' · ')}
-      {source.droits === 'a-verifier' ? '  ⚠ droits à vérifier' : ''}
     </Text>
   );
 }

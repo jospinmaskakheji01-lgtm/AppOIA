@@ -16,8 +16,7 @@ export const versionLSG: VersionBible = {
   nom: 'Louis Segond 1910',
   langue: 'fr',
   annee: '1910',
-  droits: 'domaine-public',
-  noteDroits: `Domaine public.`,
+  provenance: 'domaine-public',
   couverture: 'partielle',
   sourceId: SOURCE_LSG,
 };

@@ -3,16 +3,17 @@ import { ScrollView, Text, View } from 'react-native';
 
 import { Carte, Etiquette, Separateur, SousTitre, Titre } from '../src/components/ui';
 import { statistiquesBase, toutesLesSources, versionsDisponibles } from '../src/knowledge';
-import { StatutDroits } from '../src/knowledge/types';
+import { Provenance } from '../src/knowledge/types';
 import { useApp } from '../src/store/AppContext';
 import { fontSize, radius, spacing } from '../src/theme/theme';
 
-const LIBELLES_DROITS: Record<StatutDroits, string> = {
+/** Libellés d'affichage de la provenance, quand elle est renseignée. */
+const LIBELLES_PROVENANCE: Record<Provenance, string> = {
   'domaine-public': 'Domaine public',
   'licence-libre': 'Licence libre',
   'sous-droits': 'Sous droits',
   interne: 'Rédaction interne',
-  'a-verifier': 'Droits à vérifier',
+  'non-precisee': 'Provenance non précisée',
 };
 
 export default function Sources() {
@@ -20,9 +21,6 @@ export default function Sources() {
   const sources = useMemo(() => toutesLesSources(), []);
   const versions = useMemo(() => versionsDisponibles(), []);
   const base = useMemo(() => statistiquesBase(), []);
-
-  const couleurDroits = (droits: StatutDroits) =>
-    droits === 'a-verifier' || droits === 'sous-droits' ? t.colors.danger : t.colors.success;
 
   return (
     <ScrollView
@@ -33,8 +31,7 @@ export default function Sources() {
       <Titre style={{ marginTop: spacing.sm }}>Sources</Titre>
       <SousTitre style={{ marginTop: spacing.sm }}>
         Chaque information de l’application provient de l’une de ces sources et reste
-        rattachée à elle. Le statut des droits indique ce que l’application a le droit de
-        stocker et de diffuser.
+        rattachée à elle : vous savez toujours d’où vient ce que vous lisez.
       </SousTitre>
 
       <Carte accent style={{ marginTop: spacing.lg }}>
@@ -72,16 +69,18 @@ export default function Sources() {
             </View>
           </View>
 
-          <Text
-            style={{
-              color: couleurDroits(s.droits),
-              fontSize: fontSize.sm,
-              fontWeight: '700',
-              marginTop: spacing.md,
-            }}>
-            {LIBELLES_DROITS[s.droits]}
-          </Text>
-          {s.noteDroits ? (
+          {s.provenance ? (
+            <Text
+              style={{
+                color: t.colors.textMuted,
+                fontSize: fontSize.sm,
+                fontWeight: '600',
+                marginTop: spacing.md,
+              }}>
+              {LIBELLES_PROVENANCE[s.provenance]}
+            </Text>
+          ) : null}
+          {s.noteProvenance ? (
             <Text
               style={{
                 color: t.colors.textMuted,
@@ -89,7 +88,7 @@ export default function Sources() {
                 lineHeight: 22,
                 marginTop: 4,
               }}>
-              {s.noteDroits}
+              {s.noteProvenance}
             </Text>
           ) : null}
           {s.documentOrigine ? (
@@ -114,15 +113,17 @@ export default function Sources() {
             {v.langue} · {v.annee ?? 'sans date'} ·{' '}
             {v.couverture === 'complete' ? 'couverture complète' : 'couverture partielle'}
           </Text>
-          <Text
-            style={{
-              color: couleurDroits(v.droits),
-              fontSize: fontSize.sm,
-              fontWeight: '700',
-              marginTop: spacing.sm,
-            }}>
-            {LIBELLES_DROITS[v.droits]}
-          </Text>
+          {v.provenance ? (
+            <Text
+              style={{
+                color: t.colors.textMuted,
+                fontSize: fontSize.sm,
+                fontWeight: '600',
+                marginTop: spacing.sm,
+              }}>
+              {LIBELLES_PROVENANCE[v.provenance]}
+            </Text>
+          ) : null}
         </Carte>
       ))}
 
@@ -133,8 +134,7 @@ export default function Sources() {
         <SousTitre style={{ marginTop: spacing.sm }}>
           Les ouvrages s’ajoutent par ingestion, hors de l’application : voir
           `docs/BASE-DE-CONNAISSANCES.md` et les scripts `importer-version` et
-          `importer-document`. Un ouvrage sous droits ne doit contenir que des renvois et
-          de courtes citations.
+          `importer-document`.
         </SousTitre>
       </Carte>
     </ScrollView>

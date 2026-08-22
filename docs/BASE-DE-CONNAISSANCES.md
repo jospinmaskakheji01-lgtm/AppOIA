@@ -16,26 +16,16 @@ Pour chaque document reçu, on établit d'abord sa fiche :
 | `id` | `dico-westphal` | identifiant stable, en minuscules |
 | `titre` | *Dictionnaire encyclopédique de la Bible* | |
 | `auteur` | A. Westphal | si connu |
-| `annee` | 1932 | détermine souvent le statut des droits |
+| `annee` | 1932 | si connue |
 | `langue` | `fr` | |
 | `type` | `dictionnaire` | `bible`, `dictionnaire`, `commentaire`, `etude`, `theologie`, `enseignement` |
-| `droits` | `domaine-public` | voir ci-dessous |
 | `abreviation` | `DEB` | affichée à côté de chaque extrait |
 | `documentOrigine` | `westphal-tome1.pdf` | pour retrouver le fichier transmis |
+| `provenance` | `domaine-public` | **facultatif**, purement documentaire |
 
-### Statut des droits — à trancher avant toute extraction
-
-| Statut | Ce qu'on peut stocker |
-| --- | --- |
-| `domaine-public` | le texte intégral |
-| `licence-libre` | le texte intégral, en respectant la licence (attribution, partage à l'identique…) |
-| `sous-droits` | **des renvois et de courtes citations uniquement** — jamais l'ouvrage reproduit |
-| `interne` | contenu écrit pour l'application |
-| `a-verifier` | le contenu est indexé mais marqué non redistribuable ; l'importateur émet un avertissement |
-
-En France, un ouvrage tombe dans le domaine public 70 ans après la mort de son auteur.
-Une traduction est une œuvre distincte : une traduction récente d'un texte ancien reste
-protégée. Dans le doute, `a-verifier`.
+Le champ `provenance` ne conditionne rien : ni l'ingestion, ni l'indexation, ni
+l'affichage. Il n'existe que pour noter d'où vient un ouvrage, à l'intention de qui
+consultera plus tard la liste des sources. Il peut être omis.
 
 ## 2. Extraction et structuration
 
@@ -51,7 +41,6 @@ Le document est converti en un JSON qui suit l'un des deux formats ci-dessous.
     "nom": "Ostervald 1996",
     "langue": "fr",
     "annee": "1996",
-    "droits": "domaine-public",
     "couverture": "complete",
     "sourceId": "bible-ostervald"
   },
@@ -71,7 +60,7 @@ chapitre hors plage.
 {
   "module": { "id": "dico-westphal-v1" },
   "source": { "id": "dico-westphal", "titre": "…", "auteur": "…", "langue": "fr",
-              "type": "dictionnaire", "droits": "domaine-public", "abreviation": "DEB" },
+              "type": "dictionnaire", "abreviation": "DEB" },
   "entrees": [
     {
       "id": "grace",
@@ -115,9 +104,10 @@ npm run importer:version  tests/fixtures/exemple-version.json
 npm run importer:document tests/fixtures/exemple-dictionnaire.json
 ```
 
-L'importateur affiche un récapitulatif, signale les avertissements de droits, refuse
-d'écrire si une erreur est détectée (`--forcer` outrepasse), puis génère le module dans
-`src/data/versions/` ou `src/data/modules/`.
+L'importateur affiche un récapitulatif et refuse d'écrire si une erreur **de structure**
+est détectée — livre inconnu, chapitre hors plage, référence irrésoluble, définition
+manquante (`--forcer` outrepasse). Il génère ensuite le module dans `src/data/versions/`
+ou `src/data/modules/`.
 
 Il reste à l'activer — c'est la seule modification de code nécessaire :
 
@@ -145,7 +135,7 @@ Dès qu'un module est enregistré, son contenu apparaît :
 - dans l'**atelier OIA**, où les notices aident à l'Observation et les commentaires
   s'ouvrent à l'Interprétation — après que l'utilisateur a écrit sa propre réponse ;
 - dans l'**assistant** (`/assistant`), comme contexte cité ;
-- dans l'écran **Sources** (`/sources`), avec son statut de droits.
+- dans l'écran **Sources** (`/sources`), avec sa fiche.
 
 Une nouvelle version biblique devient immédiatement sélectionnable et comparable.
 
@@ -160,8 +150,9 @@ L'application ne mélange jamais :
 | `synthese-ia` | un modèle de langage | badge gris, mention explicite du modèle |
 
 La synthèse est produite par un service que vous hébergez (`serveur/`), jamais par une
-clé embarquée dans l'application. Ce service ne renvoie que la synthèse : les citations
-restent produites localement, ce qui rend la séparation structurelle et non déclarative.
+clé embarquée dans l'application — une clé embarquée serait extractible du paquet
+installé. Ce service ne renvoie que la synthèse : les citations restent produites
+localement, ce qui rend la séparation structurelle et non déclarative.
 
 ## 6. Structure du code
 

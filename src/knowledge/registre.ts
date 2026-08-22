@@ -66,20 +66,16 @@ function indexerTerme(terme: string, entreeId: string): void {
 }
 
 /**
- * Vérifie un module avant intégration. Étape « Vérification » du pipeline
- * d'ingestion : un module comportant une erreur n'est pas enregistré.
+ * Vérifie la cohérence d'un module avant intégration. Étape « Vérification »
+ * du pipeline d'ingestion : un module comportant une erreur n'est pas
+ * enregistré. Les contrôles portent sur la structure des données — jamais sur
+ * la provenance de l'ouvrage.
  */
 export function verifierModule(module: ModuleConnaissance): AnomalieModule[] {
   const anomalies: AnomalieModule[] = [];
   if (!module.id) anomalies.push({ gravite: 'erreur', message: 'Module sans identifiant.' });
   if (!module.source?.id) {
     anomalies.push({ gravite: 'erreur', message: 'Module sans source déclarée.' });
-  }
-  if (module.source && module.source.droits === 'a-verifier') {
-    anomalies.push({
-      gravite: 'avertissement',
-      message: `Droits non déterminés pour « ${module.source.titre} » : le contenu est indexé mais ne doit pas être redistribué.`,
-    });
   }
   const vus = new Set<string>();
   for (const entree of module.entrees ?? []) {
