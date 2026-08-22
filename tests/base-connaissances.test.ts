@@ -70,6 +70,26 @@ async function principal(): Promise<void> {
     verifier(`« ${entree} » → ${attendu ?? 'non reconnu'}`, obtenu === attendu, obtenu);
   }
 
+  console.log('\nLouis Segond 1910 — texte intégral');
+  const lsg = statistiquesVersion('lsg1910');
+  verifier('la version est installée', Boolean(lsg), lsg?.versets);
+  verifier('les 66 livres sont couverts', (lsg?.livres ?? 0) === 66, lsg?.livres);
+  verifier('le compte des versets est celui du canon', lsg?.versets === 31102, lsg?.versets);
+  // Trois passages hors des 48 du corpus d'origine : ils étaient inaccessibles avant.
+  for (const [livre, chapitre, verset] of [
+    ['Ézéchiel', 37, 1],
+    ['Abdias', 1, 21],
+    ['3 Jean', 1, 14],
+  ] as const) {
+    const rendu = comparerVersions({ livre, chapitre, verset });
+    const lu = rendu.find((r) => r.version.id === 'lsg1910');
+    verifier(
+      `${livre} ${chapitre}:${verset} est lisible`,
+      Boolean(lu?.versets.length),
+      lu?.versets[0]?.texte?.slice(0, 40),
+    );
+  }
+
   console.log('\nVersions bibliques');
   const versions = versionsDisponibles();
   verifier('au moins une version installée', versions.length >= 1, versions.length);

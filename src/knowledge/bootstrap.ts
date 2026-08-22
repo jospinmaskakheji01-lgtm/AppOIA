@@ -6,7 +6,7 @@
  * Voir `docs/BASE-DE-CONNAISSANCES.md` pour le déroulé complet.
  */
 
-import { moduleLSG } from '../data/versions/lsg1910';
+import { modulelsg1910 } from '../data/versions/lsg1910';
 import { moduleparolevivante } from '../data/versions/parole-vivante';
 import { moduleDictionnaire } from '../data/modules/dictionnaire';
 import { modulepetitdictionnairebiblique } from '../data/modules/petit-dictionnaire-biblique';
@@ -18,7 +18,7 @@ import { enregistrerModule } from './registre';
 import { AnomalieModule, ModuleConnaissance } from './types';
 
 /** Versions bibliques installées. Ajouter une version = ajouter une ligne. */
-const modulesVersions: ModuleVersion[] = [moduleLSG, moduleparolevivante];
+const modulesVersions: ModuleVersion[] = [modulelsg1910, moduleparolevivante];
 
 /** Modules de connaissance installés. Ajouter un ouvrage = ajouter une ligne. */
 const modulesConnaissance: ModuleConnaissance[] = [
