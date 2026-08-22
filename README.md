@@ -250,8 +250,12 @@ npx eas-cli build --platform android --profile apk
 ```
 
 Le profil `apk` de `eas.json` produit un fichier installable directement ; le profil
-`boutique` produit l'`.aab` attendu par Google Play. À la fin du build, EAS donne un lien
-de téléchargement, et `npx eas-cli build:list` retrouve les builds passés.
+`boutique` produit l'`.aab` attendu par Google Play. `npx eas-cli build:list` retrouve les
+builds passés.
+
+C'est aussi le chemin le plus court pour arriver sur un téléphone : à la fin du build, EAS
+affiche un lien **et un QR code**. On scanne le code avec l'appareil, l'APK s'y télécharge
+directement, on l'ouvre, c'est installé — sans passer par un ordinateur.
 
 ### En local, avec le SDK Android
 
@@ -264,7 +268,37 @@ npx expo prebuild --platform android     # génère android/, ignoré par git
 cd android && ./gradlew assembleRelease
 ```
 
-L'APK sort dans `android/app/build/outputs/apk/release/`.
+L'APK sort dans `android/app/build/outputs/apk/release/`. Le premier build télécharge
+tout l'outillage Gradle et compile les modules natifs : comptez une quinzaine de minutes,
+puis une poignée ensuite.
+
+Par défaut le fichier embarque les bibliothèques natives des quatre architectures, dont
+trois quarts sont inutiles sur un appareil donné — d'où un APK d'environ 123 Mo. Pour
+obtenir un fichier par architecture, ajoutez à `android/app/build.gradle`, dans le bloc
+`android` :
+
+```gradle
+splits {
+    abi {
+        enable true
+        reset()
+        include 'arm64-v8a', 'armeabi-v7a'
+        universalApk true
+    }
+}
+```
+
+`arm64-v8a` (73 Mo) couvre les appareils vendus depuis 2017 environ ; `armeabi-v7a`
+(67 Mo) les plus anciens, en 32 bits. Ce bloc est à remettre après chaque `prebuild`,
+qui régénère `android/`.
+
+Si une compilation native échoue juste après un changement de dépendance, les répertoires
+`.cxx` et `build` de `node_modules/*/android/` gardent la configuration CMake de l'ancienne
+version — `prebuild --clean` ne les touche pas. Il faut les supprimer à la main :
+
+```bash
+find node_modules -maxdepth 3 -type d \( -name ".cxx" -o -path "*/android/build" \) -exec rm -rf {} +
+```
 
 **La clé de signature compte plus que l'APK.** Android n'accepte une mise à jour que si
 elle est signée par la même clé que la version installée : perdre la clé oblige à publier
@@ -290,6 +324,29 @@ Gardez `lumiere.keystore` et son mot de passe hors du dépôt, et sauvegardés a
 Par câble : `adb install -r lumiere.apk`. Sans câble : copiez le fichier sur le téléphone
 et ouvrez-le ; Android demandera d'autoriser l'installation depuis cette source, parce
 que le fichier ne vient pas du Play Store.
+
+**L'APK ne passe pas par courriel.** Gmail plafonne les pièces jointes à 25 Mio, et
+l'encodage d'un binaire en gonfle la taille d'un tiers : les 73 Mo de la version arm64 en
+font plus de 100 une fois encodés. Trois chemins, du plus commode au moins :
+
+1. Le QR code d'EAS Build, décrit plus haut — rien à transférer.
+2. Déposer l'APK sur un espace de partage et ouvrir le lien depuis le téléphone. C'est ce
+   que fait Gmail lui-même quand une pièce jointe dépasse la limite : il bascule sur Drive
+   et n'envoie qu'un lien.
+3. Une **release GitHub**, qui accepte des fichiers jusqu'à 2 Go. Depuis le dépôt :
+   *Releases* → *Draft a new release*, on y dépose l'APK et le lien devient permanent.
+   C'est l'endroit prévu pour ça, et il garde l'historique des versions publiées.
+
+Le binaire lui-même n'a pas sa place dans le dépôt : au-delà de 50 Mo GitHub avertit,
+au-delà de 100 Mo il refuse, et un binaire versionné alourdit l'historique pour toujours
+sans jamais servir de source. C'est le rôle des releases.
+
+Pour vérifier qu'un APK est arrivé intact, comparez son empreinte :
+
+```bash
+shasum -a 256 lumiere.apk          # macOS, Linux
+certutil -hashfile lumiere.apk SHA256   # Windows
+```
 
 ## Structure
 
