@@ -234,6 +234,63 @@ npx expo export --platform android
 npx expo export --platform ios
 ```
 
+## Fabriquer l'APK
+
+`expo export` ne produit qu'un bundle JavaScript ; l'APK demande une compilation
+Android. Deux chemins, selon que vous voulez installer un outillage ou non.
+
+### Par EAS Build, sans rien installer
+
+Le service de build d'Expo compile dans le nuage et gère la signature. Il faut un
+compte Expo, gratuit.
+
+```bash
+npx eas-cli login
+npx eas-cli build --platform android --profile apk
+```
+
+Le profil `apk` de `eas.json` produit un fichier installable directement ; le profil
+`boutique` produit l'`.aab` attendu par Google Play. À la fin du build, EAS donne un lien
+de téléchargement, et `npx eas-cli build:list` retrouve les builds passés.
+
+### En local, avec le SDK Android
+
+Il faut le JDK 17 ou plus, et le SDK Android (`platform-tools`, `platforms;android-36`,
+`build-tools;36.0.0`) — Android Studio les installe, ou les *command-line tools* seuls.
+
+```bash
+export ANDROID_HOME=/chemin/vers/android-sdk
+npx expo prebuild --platform android     # génère android/, ignoré par git
+cd android && ./gradlew assembleRelease
+```
+
+L'APK sort dans `android/app/build/outputs/apk/release/`.
+
+**La clé de signature compte plus que l'APK.** Android n'accepte une mise à jour que si
+elle est signée par la même clé que la version installée : perdre la clé oblige à publier
+l'application sous une autre identité, et les utilisateurs perdent leurs données. Sans
+clé fournie, Gradle signe avec la clé de débogage, publique et sans valeur. Pour signer
+avec la vôtre, sans jamais l'écrire dans le dépôt :
+
+```bash
+keytool -genkeypair -v -storetype PKCS12 -keystore lumiere.keystore -alias lumiere \
+  -keyalg RSA -keysize 4096 -validity 10950
+
+cd android && ./gradlew assembleRelease \
+  -Pandroid.injected.signing.store.file=$PWD/../lumiere.keystore \
+  -Pandroid.injected.signing.store.password=… \
+  -Pandroid.injected.signing.key.alias=lumiere \
+  -Pandroid.injected.signing.key.password=…
+```
+
+Gardez `lumiere.keystore` et son mot de passe hors du dépôt, et sauvegardés ailleurs.
+
+### Installer l'APK sur un téléphone
+
+Par câble : `adb install -r lumiere.apk`. Sans câble : copiez le fichier sur le téléphone
+et ouvrez-le ; Android demandera d'autoriser l'installation depuis cette source, parce
+que le fichier ne vient pas du Play Store.
+
 ## Structure
 
 ```
