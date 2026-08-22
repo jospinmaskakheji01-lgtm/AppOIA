@@ -12,6 +12,7 @@ import {
   enregistrerVersion,
   formaterReference,
   getEntree,
+  getSource,
   rassemblerContexte,
   rechercher,
   statistiquesBase,
@@ -89,6 +90,34 @@ async function principal(): Promise<void> {
   verifier('des commentaires existent', base.commentaires > 100, base.commentaires);
   verifier('des références croisées existent', base.referencesCroisees > 10, base.referencesCroisees);
   verifier('des thèmes existent', base.themes > 20, base.themes);
+
+  console.log('\nPetit Dictionnaire Biblique');
+  const pdb = getSource('petit-dictionnaire-biblique');
+  verifier('la source du dictionnaire est enregistrée', Boolean(pdb), pdb?.titre);
+  const agape = getEntree('agape');
+  verifier('une entrée du dictionnaire est présente', Boolean(agape), agape?.terme);
+  verifier(
+    'la translittération grecque est captée',
+    Boolean(agape?.motsOriginaux.some((m) => m.translitteration === 'agapè')),
+    agape?.motsOriginaux.map((m) => m.translitteration),
+  );
+  const centurion = getEntree('centurion');
+  verifier(
+    'une entrée à deux sous-sources porte deux définitions',
+    (centurion?.definitions.length ?? 0) >= 2,
+    centurion?.definitions.map((d) => d.nuance),
+  );
+  verifier(
+    'chaque définition indique sa page',
+    Boolean(centurion?.definitions.every((d) => Boolean(d.localisation?.page))),
+    centurion?.definitions.map((d) => d.localisation?.page),
+  );
+  const jerusalemPDB = getEntree('jerusalem');
+  verifier(
+    'les références du dictionnaire sont normalisées',
+    (jerusalemPDB?.references.length ?? 0) > 0,
+    jerusalemPDB?.references.slice(0, 3).map((r) => formaterReference(r)),
+  );
 
   console.log('\nDossier de référence (exemple Jean 3:16)');
   const dossier = dossierReference({ livre: 'Jean', chapitre: 3, verset: 16 });
@@ -217,10 +246,11 @@ async function principal(): Promise<void> {
   });
   verifier('la fusion est acceptée', fusion.every((a) => a.gravite !== 'erreur'), fusion);
   const entreeGrace = getEntree('grace');
+  const sourcesGrace = new Set(entreeGrace?.definitions.map((d) => d.sourceId));
   verifier(
-    'les deux définitions coexistent sur la même entrée',
-    new Set(entreeGrace?.definitions.map((d) => d.sourceId)).size === 2,
-    entreeGrace?.definitions.map((d) => d.sourceId),
+    'les définitions de plusieurs ouvrages coexistent sur une même entrée',
+    sourcesGrace.size >= 2 && sourcesGrace.has('source-fusion'),
+    [...sourcesGrace],
   );
 
   console.log(echecs === 0 ? '\nTout est vert.\n' : `\n${echecs} échec(s).\n`);

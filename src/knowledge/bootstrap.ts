@@ -9,6 +9,7 @@
 import { moduleLSG } from '../data/versions/lsg1910';
 import { moduleparolevivante } from '../data/versions/parole-vivante';
 import { moduleDictionnaire } from '../data/modules/dictionnaire';
+import { modulepetitdictionnairebiblique } from '../data/modules/petit-dictionnaire-biblique';
 import { moduleMethodeOIA, moduleRedaction } from '../data/modules/derive';
 import { enregistrerVersion, ModuleVersion } from './bible';
 import { enregistrerModule } from './registre';
@@ -21,6 +22,7 @@ const modulesVersions: ModuleVersion[] = [moduleLSG, moduleparolevivante];
 const modulesConnaissance: ModuleConnaissance[] = [
   moduleRedaction,
   moduleDictionnaire,
+  modulepetitdictionnairebiblique,
   moduleMethodeOIA,
 ];
 

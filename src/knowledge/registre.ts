@@ -19,6 +19,7 @@ import {
   Commentaire,
   EntreeDictionnaire,
   ModuleConnaissance,
+  MotOriginal,
   ReferenceBiblique,
   ReferenceCroisee,
   Source,
@@ -51,6 +52,34 @@ const etat: Etat = {
   indexEntreesParVerset: new Map(),
   modules: [],
 };
+
+/**
+ * Deux ouvrages citant le même mot original ne doivent pas produire deux
+ * entrées côte à côte. On garde la plus complète : celle qui porte l'écriture
+ * d'origine et, si possible, un numéro Strong.
+ */
+function fusionnerMotsOriginaux(mots: MotOriginal[]): MotOriginal[] {
+  const parCle = new Map<string, MotOriginal>();
+  const richesse = (m: MotOriginal) =>
+    (m.mot !== m.translitteration ? 2 : 0) + (m.strong ? 1 : 0) + (m.sensLitteral ? 1 : 0);
+
+  for (const mot of mots) {
+    const cle = `${mot.langue}|${normaliser(mot.translitteration)}`;
+    const existant = parCle.get(cle);
+    if (!existant) {
+      parCle.set(cle, mot);
+      continue;
+    }
+    const gagnant = richesse(mot) > richesse(existant) ? mot : existant;
+    const perdant = gagnant === mot ? existant : mot;
+    parCle.set(cle, {
+      ...gagnant,
+      strong: gagnant.strong ?? perdant.strong,
+      sensLitteral: gagnant.sensLitteral ?? perdant.sensLitteral,
+    });
+  }
+  return [...parCle.values()];
+}
 
 function indexerTerme(terme: string, entreeId: string): void {
   const cle = normaliser(terme);
@@ -119,12 +148,18 @@ export function enregistrerModule(module: ModuleConnaissance): AnomalieModule[] 
       // Deux ouvrages traitant du même terme sont fusionnés : les définitions
       // s'ajoutent, chacune conservant sa source.
       existante.definitions.push(...entree.definitions);
-      existante.motsOriginaux.push(...entree.motsOriginaux);
+      existante.motsOriginaux = fusionnerMotsOriginaux([
+        ...existante.motsOriginaux,
+        ...entree.motsOriginaux,
+      ]);
       existante.references.push(...entree.references);
       existante.variantes = [...new Set([...existante.variantes, ...entree.variantes])];
       existante.themes = [...new Set([...existante.themes, ...entree.themes])];
     } else {
-      etat.entrees.set(entree.id, { ...entree });
+      etat.entrees.set(entree.id, {
+        ...entree,
+        motsOriginaux: fusionnerMotsOriginaux(entree.motsOriginaux),
+      });
     }
     indexerTerme(entree.terme, entree.id);
     for (const variante of entree.variantes) indexerTerme(variante, entree.id);

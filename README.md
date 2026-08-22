@@ -106,9 +106,16 @@ Le déroulé complet et les formats d'entrée sont dans
 
 ### Contenu actuel
 
-48 passages en Louis Segond 1910 · 31 entrées de dictionnaire avec hébreu, grec et
-numéros Strong · 24 fiches de livres · plus de 200 commentaires · plus de 100 références
-croisées · 3 sources déclarées, dont le document de méthode OIA.
+**Deux versions bibliques** — Louis Segond 1910 (48 passages) et Parole Vivante, la
+transposition du Nouveau Testament par Alfred Kuen (7 952 versets, les 27 livres).
+
+**Plus de 1 600 entrées de dictionnaire**, dont 1 671 issues du Petit Dictionnaire
+Biblique — un recueil de cinq ouvrages où chaque notice conserve celui dont elle
+provient, avec sa page. Les termes traités par plusieurs ouvrages portent plusieurs
+définitions côte à côte plutôt qu'une synthèse.
+
+S'y ajoutent 24 fiches de livres, plus de 200 commentaires, plus de 6 000 références
+bibliques extraites et normalisées, et le document de méthode OIA comme source citable.
 
 ## Comment l'application applique la méthode
 
