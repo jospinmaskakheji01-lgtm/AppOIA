@@ -61,6 +61,26 @@ export interface EtudeOIA {
   jour?: number;
 }
 
+/**
+ * Un travail conduit selon l'une des six méthodes d'étude biblique.
+ *
+ * Contrairement à l'étude OIA, dont les champs sont fixés par la méthode, ces
+ * six-là n'ont pas les mêmes étapes : les réponses sont donc rangées par clé
+ * d'étape, et c'est la méthode qui dit lesquelles attendre.
+ */
+export interface TravailEtude {
+  id: string;
+  /** L'une des six méthodes de src/data/methodes-etude.ts. */
+  methodeId: string;
+  /** Ce sur quoi porte l'étude : « Barnabas », « la grâce », « Philippiens »… */
+  sujet: string;
+  cree: string;
+  modifie: string;
+  /** Clé d'étape → réponse. */
+  reponses: Record<string, string>;
+  terminee: boolean;
+}
+
 export interface EntreeJournal {
   id: string;
   date: string;
@@ -110,6 +130,7 @@ export interface Reglages {
 export interface EtatApp {
   joursTermines: string[];
   etudes: EtudeOIA[];
+  travaux: TravailEtude[];
   progressions: Record<string, ProgressionPlan>;
   journal: EntreeJournal[];
   prieres: SujetPriere[];
@@ -123,6 +144,7 @@ export interface EtatApp {
 const ETAT_INITIAL: EtatApp = {
   joursTermines: [],
   etudes: [],
+  travaux: [],
   progressions: {},
   journal: [],
   prieres: [],
@@ -162,6 +184,10 @@ interface ContexteApp {
   terminerEtude: (id: string) => void;
   supprimerEtude: (id: string) => void;
   etudeDuPlan: (planId: string, jour: number) => EtudeOIA | undefined;
+  creerTravail: (methodeId: string, sujet: string) => TravailEtude;
+  majTravail: (id: string, reponses: Record<string, string>) => void;
+  terminerTravail: (id: string) => void;
+  supprimerTravail: (id: string) => void;
   terminerJourPlan: (planId: string, jour: number) => void;
   reinitialiserPlan: (planId: string) => void;
   ajouterEntree: (entree: Omit<EntreeJournal, 'id' | 'date'>) => void;
@@ -219,6 +245,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
             ...ETAT_INITIAL,
             ...charge,
             etudes: (charge.etudes ?? []).map(migrerEtude),
+            travaux: charge.travaux ?? [],
             reglages: { ...ETAT_INITIAL.reglages, ...(charge.reglages ?? {}) },
           });
         }
@@ -332,6 +359,48 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const supprimerEtude = useCallback((etudeId: string) => {
     setEtat((e) => ({ ...e, etudes: e.etudes.filter((x) => x.id !== etudeId) }));
+  }, []);
+
+  const creerTravail = useCallback((methodeId: string, sujet: string) => {
+    const maintenant = new Date().toISOString();
+    const travail: TravailEtude = {
+      id: id(),
+      methodeId,
+      sujet,
+      cree: maintenant,
+      modifie: maintenant,
+      reponses: {},
+      terminee: false,
+    };
+    setEtat((e) => ({ ...e, travaux: [travail, ...e.travaux] }));
+    return travail;
+  }, []);
+
+  const majTravail = useCallback((travailId: string, reponses: Record<string, string>) => {
+    setEtat((e) => ({
+      ...e,
+      travaux: e.travaux.map((x) =>
+        x.id === travailId ? { ...x, reponses, modifie: new Date().toISOString() } : x,
+      ),
+    }));
+  }, []);
+
+  /** Achever un travail d'étude vaut journée vécue, comme une étude OIA. */
+  const terminerTravail = useCallback((travailId: string) => {
+    const cle = cleJour();
+    setEtat((e) => ({
+      ...e,
+      travaux: e.travaux.map((x) =>
+        x.id === travailId ? { ...x, terminee: true, modifie: new Date().toISOString() } : x,
+      ),
+      joursTermines: e.joursTermines.includes(cle)
+        ? e.joursTermines
+        : [...e.joursTermines, cle].sort(),
+    }));
+  }, []);
+
+  const supprimerTravail = useCallback((travailId: string) => {
+    setEtat((e) => ({ ...e, travaux: e.travaux.filter((x) => x.id !== travailId) }));
   }, []);
 
   const etudeDuPlan = useCallback(
@@ -471,6 +540,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       terminerEtude,
       supprimerEtude,
       etudeDuPlan,
+      creerTravail,
+      majTravail,
+      terminerTravail,
+      supprimerTravail,
       terminerJourPlan,
       reinitialiserPlan,
       ajouterEntree,
@@ -494,6 +567,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       terminerEtude,
       supprimerEtude,
       etudeDuPlan,
+      creerTravail,
+      majTravail,
+      terminerTravail,
+      supprimerTravail,
       terminerJourPlan,
       reinitialiserPlan,
       ajouterEntree,

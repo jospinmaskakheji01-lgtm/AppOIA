@@ -16,6 +16,7 @@ import {
 import { progressionTemps } from '../../src/data/oia';
 import { progressionSimplifiee } from '../../src/data/oia-simplifiee';
 import { plans } from '../../src/data/plans';
+import { methodesEtude } from '../../src/data/methodes-etude';
 import { chapitresDuJour, formaterPortions, plansLecture } from '../../src/data/plans-lecture';
 import { EtudeOIA, useApp } from '../../src/store/AppContext';
 import { fontSize, radius, spacing } from '../../src/theme/theme';
@@ -95,6 +96,46 @@ export default function Etudier() {
         onPress={() => router.push('/oia/nouvelle?methode=generale')}
         style={{ marginTop: spacing.sm }}
       />
+
+      <Carte style={{ marginTop: spacing.md }} onPress={() => router.push('/etude')}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
+          <View
+            style={{
+              width: 46,
+              height: 46,
+              borderRadius: radius.md,
+              backgroundColor: t.colors.primarySoft,
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}>
+            <Text style={{ color: t.colors.primary, fontSize: 20 }}>❋</Text>
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={{ color: t.colors.text, fontSize: fontSize.md, fontWeight: '700' }}>
+              Six méthodes d’étude biblique
+            </Text>
+            <SousTitre style={{ marginTop: 1 }}>
+              Personnages, thèmes, mots, survol, analyse, contexte — la marche à suivre
+            </SousTitre>
+          </View>
+        </View>
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginTop: spacing.md }}>
+          {methodesEtude.map((m) => (
+            <View
+              key={m.id}
+              style={{
+                backgroundColor: t.colors.surfaceAlt,
+                borderRadius: radius.pill,
+                paddingVertical: 4,
+                paddingHorizontal: spacing.md,
+              }}>
+              <Text style={{ color: t.colors.textMuted, fontSize: fontSize.xs, fontWeight: '600' }}>
+                {m.symbole} {m.titre.replace('Étude de ', '').replace('Étude ', '').replace('Le survol des ', 'Survol des ')}
+              </Text>
+            </View>
+          ))}
+        </View>
+      </Carte>
 
       <View
         style={{

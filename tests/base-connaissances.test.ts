@@ -43,6 +43,7 @@ import {
   questionsB,
 } from '../src/data/oia-simplifiee';
 import { genreDuLivre } from '../src/data/genres';
+import { methodesEtude, progressionTravail } from '../src/data/methodes-etude';
 import {
   PortionLecture,
   chapitresDuJour,
@@ -538,6 +539,71 @@ async function principal(): Promise<void> {
     discours
       .flatMap((j) => j.portions)
       .every((p, i, tous) => i === 0 || p.chapitre >= tous[i - 1].chapitre),
+  );
+
+  // ————————————————————————————————————————————————————————————
+  // Les six méthodes d'étude biblique
+  // ————————————————————————————————————————————————————————————
+
+  console.log('\nMéthodes d’étude biblique');
+  verifier('les six méthodes sont là', methodesEtude.length === 6, methodesEtude.length);
+  verifier(
+    'chacune porte l’identifiant attendu',
+    methodesEtude.map((m) => m.id).join(',') ===
+      'personnages,thematique,mots,survol,analyse,contexte',
+    methodesEtude.map((m) => m.id),
+  );
+  verifier(
+    'chaque méthode donne une marche à suivre d’au moins six étapes',
+    methodesEtude.every((m) => m.etapes.length >= 6),
+    methodesEtude.map((m) => `${m.id}: ${m.etapes.length}`),
+  );
+  const etapesIncompletes = methodesEtude.flatMap((m) =>
+    m.etapes
+      .filter((e) => !e.titre.trim() || !e.consigne.trim() || e.questions.length === 0)
+      .map((e) => `${m.id}/${e.cle}`),
+  );
+  verifier(
+    'chaque étape a son titre, sa consigne et au moins une question',
+    etapesIncompletes.length === 0,
+    etapesIncompletes,
+  );
+  const clesDoublons = methodesEtude
+    .filter((m) => new Set(m.etapes.map((e) => e.cle)).size !== m.etapes.length)
+    .map((m) => m.id);
+  verifier(
+    'les clés d’étape sont uniques dans chaque méthode',
+    clesDoublons.length === 0,
+    clesDoublons,
+  );
+
+  // Une source inconnue afficherait son identifiant brut à l'écran.
+  const sourcesInconnues = methodesEtude.flatMap((m) =>
+    m.pourAllerPlusLoin.filter((r) => !getSource(r.sourceId)).map((r) => `${m.id} → ${r.sourceId}`),
+  );
+  verifier(
+    'les ouvrages cités par les méthodes sont tous installés',
+    sourcesInconnues.length === 0,
+    sourcesInconnues,
+  );
+  verifier(
+    'chaque méthode renvoie à au moins un ouvrage',
+    methodesEtude.every((m) => m.pourAllerPlusLoin.length > 0),
+  );
+  verifier(
+    'chaque méthode dit quand l’utiliser et sur quoi elle porte',
+    methodesEtude.every((m) => m.quand.trim() && m.objet.trim() && m.exempleSujet.trim()),
+  );
+  verifier(
+    'la progression va de zéro à un',
+    methodesEtude.every((m) => {
+      const pleines = Object.fromEntries(m.etapes.map((e) => [e.cle, 'x']));
+      return progressionTravail(m.id, {}) === 0 && progressionTravail(m.id, pleines) === 1;
+    }),
+  );
+  verifier(
+    'une méthode inconnue ne fait pas tomber la progression',
+    progressionTravail('inexistante', { a: 'b' }) === 0,
   );
 
   console.log('\nCommentaire du disciple — Ancien Testament');

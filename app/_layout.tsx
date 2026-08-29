@@ -36,6 +36,9 @@ function Navigation() {
         <Stack.Screen name="passage/[id]" options={{ title: 'Lecture' }} />
         <Stack.Screen name="plan/[id]" options={{ title: 'Plan' }} />
         <Stack.Screen name="plan/[id]/jour/[jour]" options={{ title: 'Étude du jour' }} />
+        <Stack.Screen name="etude/index" options={{ title: 'Méthodes d’étude' }} />
+        <Stack.Screen name="etude/[id]" options={{ title: 'La méthode' }} />
+        <Stack.Screen name="travail/[id]" options={{ title: 'Étude biblique' }} />
         <Stack.Screen name="lecture/[id]" options={{ title: 'Plan de lecture' }} />
         <Stack.Screen name="lecture/[id]/jour/[jour]" options={{ title: 'Lecture du jour' }} />
         <Stack.Screen name="meditation/[id]" options={{ headerShown: false }} />
