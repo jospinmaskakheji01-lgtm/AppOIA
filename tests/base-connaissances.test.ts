@@ -472,12 +472,72 @@ async function principal(): Promise<void> {
       return true;
     })(),
   );
+  // La règle demandée : une journée, un chapitre. Onze plans sur quinze la
+  // tiennent exactement ; les quatre autres ont plus de chapitres que de jours et
+  // ne peuvent pas la tenir — ils s'en approchent en donnant à chaque journée le
+  // même nombre de chapitres, à une unité près.
+  const UN_CHAPITRE_PAR_JOUR = [
+    'lecture-ecclesiaste-14',
+    'lecture-actes-30',
+    'lecture-marc-pierre-30',
+    'lecture-hebreux-jude-30',
+    'lecture-proverbes-31',
+    'lecture-job-42',
+    'lecture-jean-60',
+    'lecture-luc-actes-60',
+    'lecture-evangiles-90',
+    'lecture-paul-90',
+  ];
+  const enFaute = UN_CHAPITRE_PAR_JOUR.filter((id) => {
+    const p = plansLecture.find((x) => x.id === id)!;
+    return p.jours.some((j) => chapitresDuJour(j.portions) !== 1);
+  });
+  verifier('dix plans donnent exactement un chapitre par jour', enFaute.length === 0, enFaute);
+
+  const irreguliers = plansLecture
+    .filter((p) => p.id !== 'lecture-jesus-60' && p.id !== 'lecture-apotres-90')
+    .map((p) => {
+      const comptes = p.jours.map((j) => chapitresDuJour(j.portions));
+      return { id: p.id, min: Math.min(...comptes), max: Math.max(...comptes) };
+    })
+    .filter((x) => x.max - x.min > 1);
   verifier(
-    'Proverbes et Job donnent un chapitre par jour',
-    ['lecture-proverbes-31', 'lecture-job-42'].every((id) => {
-      const p = plansLecture.find((x) => x.id === id)!;
-      return p.jours.every((j) => chapitresDuJour(j.portions) === 1);
-    }),
+    'partout ailleurs, les journées ont le même nombre de chapitres à une unité près',
+    irreguliers.length === 0,
+    irreguliers,
+  );
+
+  // Les enseignements des apôtres : les discours des Actes, puis les lettres,
+  // sans qu'aucun chapitre de lettre ne manque.
+  const apotres = plansLecture.find((p) => p.id === 'lecture-apotres-90')!;
+  const discours = apotres.jours.filter((j) => j.titre);
+  verifier(
+    'le plan des apôtres s’ouvre sur les discours des Actes',
+    discours.length > 0 && discours.every((j) => j.portions.every((p) => p.livre === 'Actes')),
+    discours.length,
+  );
+  const chapitresLettres = new Set(
+    apotres.jours
+      .filter((j) => !j.titre)
+      .flatMap((j) =>
+        j.portions.flatMap((p) => {
+          const sortie: string[] = [];
+          for (let c = p.chapitre; c <= (p.chapitreFin ?? p.chapitre); c++)
+            sortie.push(`${p.livre}|${c}`);
+          return sortie;
+        }),
+      ),
+  );
+  verifier(
+    'les 121 chapitres des vingt et une lettres y sont, chacun une fois',
+    chapitresLettres.size === 121,
+    chapitresLettres.size,
+  );
+  verifier(
+    'les discours des Actes sont ceux des apôtres, dans l’ordre du livre',
+    discours
+      .flatMap((j) => j.portions)
+      .every((p, i, tous) => i === 0 || p.chapitre >= tous[i - 1].chapitre),
   );
 
   console.log('\nCommentaire du disciple — Ancien Testament');

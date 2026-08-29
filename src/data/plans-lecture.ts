@@ -12,16 +12,13 @@
  * Le découpage des journées n'est pas écrit ici : il est calculé par
  * scripts/generer-plans-lecture.mjs, pesé en versets sur le texte de la Segond
  * installée, et déposé dans plans-lecture-jours.ts. Ce fichier-ci ne porte que
- * ce qui se décide et s'écrit : les titres et les descriptions des plans. La
- * liste des passages du plan sur les enseignements de Jésus — le seul qui ne
- * soit pas une traversée — est elle aussi dans le générateur, avec le nom de
- * chaque enseignement.
+ * ce qui se décide et s'écrit : les titres et les descriptions des plans. Les
+ * listes de passages des deux plans qui ne sont pas des traversées — les
+ * enseignements de Jésus, les prédications des apôtres — sont elles aussi dans
+ * le générateur, avec le nom de chacun.
  */
 
-import {
-  journeesDesEnseignementsDeJesus,
-  joursDesPlansDeLecture,
-} from './plans-lecture-jours';
+import { joursDesPlansDeLecture } from './plans-lecture-jours';
 
 /**
  * Une portion de lecture. Trois formes, et trois seulement :
@@ -203,9 +200,9 @@ const FICHES: FichePlan[] = [
     id: 'lecture-apotres-90',
     titre: 'Les enseignements des apôtres',
     sousTitre: '90 jours',
-    parcours: 'Romains à Jude',
+    parcours: 'Les discours des Actes · Romains à Jude',
     symbole: '✉',
-    description: `Les vingt et une lettres du Nouveau Testament, de Romains à Jude, en trois mois. C'est l'enseignement donné aux premières Églises : ce qu'il faut croire, et comment vivre ensemble. Rien n'y est théorique — chaque lettre répond à une situation.`,
+    description: `D'abord les dix-neuf discours que les Actes rapportent — Pierre à la Pentecôte, Étienne devant le sanhédrin, Paul à l'Aréopage — puis les vingt et une lettres, de Romains à Jude, en entier. Les discours s'adressent à des foules, les lettres à des Églises : c'est le même enseignement, donné deux fois, une fois pour convaincre et une fois pour bâtir.`,
   },
   {
     id: 'lecture-at-90',
@@ -226,13 +223,7 @@ const FICHES: FichePlan[] = [
 ];
 
 function joursDuPlan(id: string): JourLecture[] {
-  // Les enseignements de Jésus sont le seul plan dont les journées portent un
-  // titre : il ne traverse pas un livre, il rassemble des passages.
-  if (id === 'lecture-jesus-60') {
-    return journeesDesEnseignementsDeJesus.map((j, i) => ({ jour: i + 1, ...j }));
-  }
-  const decoupage = joursDesPlansDeLecture[id] ?? [];
-  return decoupage.map((portions, i) => ({ jour: i + 1, portions }));
+  return (joursDesPlansDeLecture[id] ?? []).map((j, i) => ({ jour: i + 1, ...j }));
 }
 
 export const plansLecture: PlanLecture[] = FICHES.map((fiche) => ({

@@ -8,21 +8,22 @@
  * le nombre de jours qu'il dure. Le découpage, lui, ne se décide pas à la main :
  * il est calculé ici, puis écrit dans src/data/plans-lecture-jours.ts.
  *
- * Deux principes.
+ * La règle est celle que l'utilisateur a fixée : une journée, un chapitre. Deux
+ * cas s'en écartent, et un seul est un choix.
  *
- * D'abord, la charge des journées est pesée en versets, pas en chapitres. Un
- * plan qui donnerait « trois chapitres par jour » ferait lire 176 versets le
- * jour du Psaume 119 et 2 versets celui du Psaume 117. En répartissant sur le
- * nombre de versets, les journées demandent à peu près le même temps.
+ * Quand le plan a plus de jours que de chapitres — Ecclésiaste en quatorze jours
+ * pour douze chapitres — on divise les chapitres les plus longs, autant de fois
+ * qu'il manque de journées, et on laisse les autres entiers. Chaque journée
+ * reçoit alors exactement un chapitre ou une part de chapitre.
  *
- * Ensuite, on ne coupe un chapitre que lorsqu'il le faut vraiment. Tant que le
- * plan a moins de jours que de chapitres, chaque journée reçoit des chapitres
- * entiers, et les coupures tombent aux frontières les plus proches de la charge
- * visée. Quand le plan a plus de jours que de chapitres — Ecclésiaste en
- * quatorze jours pour douze chapitres — il faut bien diviser ; on divise alors
- * les chapitres les plus longs, autant de fois qu'il manque de journées, et on
- * laisse les autres entiers. Une journée reste ainsi une unité qu'on peut
- * méditer, plutôt qu'un fragment qui commence au milieu d'une phrase.
+ * Quand le plan a plus de chapitres que de jours — l'Ancien Testament en
+ * quatre-vingt-dix jours en compte neuf cent vingt-neuf — la règle ne peut pas
+ * tenir, et aucun découpage ne la sauverait. On s'en approche : toutes les
+ * journées reçoivent le même nombre de chapitres à une unité près, dix ou onze
+ * et jamais quatre puis dix-sept, et c'est la charge en versets qui décide
+ * lesquelles prennent le chapitre supplémentaire. Peser en versets plutôt qu'en
+ * chapitres évite qu'une journée tombe sur le Psaume 119, qui en compte cent
+ * soixante-seize, quand la suivante a le Psaume 117, qui en compte deux.
  *
  * Les chapitres retenus sont ceux que la Segond installée contient réellement,
  * et non ceux que le canon annonce : une journée ne peut pas renvoyer à un texte
@@ -76,26 +77,47 @@ const entre = (premier, dernier) =>
 // Découpage
 // ————————————————————————————————————————————————————————————
 
-/** Journées faites de chapitres entiers, aux frontières les plus proches de la charge visée. */
-function parChapitres(chapitres, jours) {
+/**
+ * Journées de longueur égale, à un chapitre près.
+ *
+ * Le recours quand il y a plus de chapitres que de jours. Le nombre de
+ * chapitres par journée ne prend que deux valeurs, `base` et `base + 1` : le
+ * lecteur sait ce qui l'attend chaque matin. Reste à choisir quelles journées
+ * reçoivent le chapitre en plus — celles qui, sans lui, resteraient en deçà de
+ * la charge en versets qu'elles devraient porter.
+ */
+function parChapitresUniformes(chapitres, jours) {
+  return decouperUniforme(chapitres, jours, (c) => c.versets);
+}
+
+/**
+ * Répartit des unités indivisibles — chapitres, ou passages d'enseignement — en
+ * donnant à chaque journée le même compte à une unité près. Le poids sert
+ * seulement à décider quelles journées reçoivent l'unité supplémentaire.
+ */
+function decouperUniforme(unites, jours, poids) {
+  const chapitres = unites;
   const cumul = [0];
-  for (const c of chapitres) cumul.push(cumul[cumul.length - 1] + c.versets);
+  for (const c of chapitres) cumul.push(cumul[cumul.length - 1] + poids(c));
   const total = cumul[cumul.length - 1];
+
+  const base = Math.floor(chapitres.length / jours);
+  let enPlus = chapitres.length - base * jours;
+  if (base === 0) throw new Error('decouperUniforme : plus de journées que d’unités');
 
   const sortie = [];
   let pris = 0;
   for (let jour = 1; jour <= jours; jour++) {
-    const restants = jours - jour;
-    const cible = (jour * total) / jours;
-    let i = pris + 1;
-    while (
-      i < chapitres.length - restants &&
-      Math.abs(cumul[i + 1] - cible) < Math.abs(cumul[i] - cible)
-    ) {
-      i += 1;
+    let combien = base;
+    // Les chapitres en plus qu'il reste à placer doivent tenir dans les journées
+    // qui restent ; passé ce point, chaque journée en prend un.
+    const obligatoire = enPlus > jours - jour;
+    if (enPlus > 0 && (obligatoire || cumul[pris + base] < (jour * total) / jours)) {
+      combien += 1;
+      enPlus -= 1;
     }
-    sortie.push(chapitres.slice(pris, i));
-    pris = i;
+    sortie.push(chapitres.slice(pris, pris + combien));
+    pris += combien;
   }
   return sortie;
 }
@@ -185,9 +207,9 @@ function decouper(livres, jours) {
   if (chapitres.length === 0) throw new Error(`Aucun chapitre pour ${livres.join(', ')}`);
   const journees =
     jours <= chapitres.length
-      ? parChapitres(chapitres, jours)
+      ? parChapitresUniformes(chapitres, jours)
       : parChapitresDivises(chapitres, jours);
-  return journees.map(enPortions);
+  return journees.map((lot) => ({ portions: enPortions(lot) }));
 }
 
 // ————————————————————————————————————————————————————————————
@@ -296,6 +318,36 @@ const ENSEIGNEMENTS_DE_JESUS = [
 ].map(([nom, livre, chapitre, verset, versetFin]) => ({ nom, livre, chapitre, verset, versetFin }));
 
 /**
+ * Les prédications des apôtres dans les Actes.
+ *
+ * Les lettres du Nouveau Testament ne sont pas le seul enseignement laissé par
+ * les apôtres : les Actes rapportent leurs discours, et ceux-là sont adressés à
+ * des foules plutôt qu'à des Églises. Ils ouvrent donc le plan, dans l'ordre du
+ * livre, avant les vingt et une lettres.
+ */
+const PREDICATIONS_DES_APOTRES = [
+  ['Pierre devant les frères : le remplacement de Judas', 'Actes', 1, 15, 26],
+  ['Pierre à la Pentecôte', 'Actes', 2, 14, 41],
+  ['Pierre sous le portique de Salomon', 'Actes', 3, 11, 26],
+  ['Pierre devant le sanhédrin', 'Actes', 4, 5, 22],
+  ['La prière de l’Église, et la communion des biens', 'Actes', 4, 23, 37],
+  ['Les apôtres devant le sanhédrin ; le conseil de Gamaliel', 'Actes', 5, 27, 42],
+  ['Le discours d’Étienne', 'Actes', 7, 1, 53],
+  ['Philippe et l’eunuque éthiopien', 'Actes', 8, 26, 40],
+  ['Pierre chez Corneille', 'Actes', 10, 34, 48],
+  ['Pierre rend compte à Jérusalem', 'Actes', 11, 1, 18],
+  ['Paul à Antioche de Pisidie', 'Actes', 13, 16, 41],
+  ['Paul et Barnabas à Lystre', 'Actes', 14, 14, 18],
+  ['Le concile de Jérusalem : Pierre et Jacques', 'Actes', 15, 6, 21],
+  ['Paul à Athènes, devant l’Aréopage', 'Actes', 17, 22, 34],
+  ['Paul aux anciens d’Éphèse', 'Actes', 20, 17, 38],
+  ['Paul à Jérusalem : son témoignage', 'Actes', 22, 1, 21],
+  ['Paul devant Félix', 'Actes', 24, 10, 21],
+  ['Paul devant Agrippa', 'Actes', 26, 1, 29],
+  ['Paul à Rome, jusqu’au bout', 'Actes', 28, 23, 31],
+].map(([nom, livre, chapitre, verset, versetFin]) => ({ nom, livre, chapitre, verset, versetFin }));
+
+/**
  * Répartit des passages entiers sur les journées d'un plan.
  *
  * À la différence d'une traversée, un passage d'enseignement ne se coupe pas :
@@ -304,36 +356,15 @@ const ENSEIGNEMENTS_DE_JESUS = [
  * visée, et prennent le nom du premier d'entre eux.
  */
 function repartirPassages(passages, jours) {
-  const poids = passages.map((p) => p.versetFin - p.verset + 1);
-  const cumul = [0];
-  for (const n of poids) cumul.push(cumul[cumul.length - 1] + n);
-  const total = cumul[cumul.length - 1];
-
-  const sortie = [];
-  let pris = 0;
-  for (let jour = 1; jour <= jours; jour++) {
-    const restants = jours - jour;
-    const cible = (jour * total) / jours;
-    let i = pris + 1;
-    while (
-      i < passages.length - restants &&
-      Math.abs(cumul[i + 1] - cible) < Math.abs(cumul[i] - cible)
-    ) {
-      i += 1;
-    }
-    const lot = passages.slice(pris, i);
-    sortie.push({
-      titre: lot.length > 1 ? `${lot[0].nom}, et la suite` : lot[0].nom,
-      portions: lot.map((p) => ({
-        livre: p.livre,
-        chapitre: p.chapitre,
-        verset: p.verset,
-        versetFin: p.versetFin,
-      })),
-    });
-    pris = i;
-  }
-  return sortie;
+  return decouperUniforme(passages, jours, (p) => p.versetFin - p.verset + 1).map((lot) => ({
+    titre: lot.length > 1 ? `${lot[0].nom}, et la suite` : lot[0].nom,
+    portions: lot.map((p) => ({
+      livre: p.livre,
+      chapitre: p.chapitre,
+      verset: p.verset,
+      versetFin: p.versetFin,
+    })),
+  }));
 }
 
 /**
@@ -380,7 +411,27 @@ const PLANS = [
   { id: 'lecture-at-90', jours: 90, livres: ANCIEN },
   { id: 'lecture-actes-30', jours: 30, livres: ['Actes'] },
   { id: 'lecture-bible-365', jours: 365, livres: [...ANCIEN, ...NOUVEAU] },
-  { id: 'lecture-apotres-90', jours: 90, livres: entre('Romains', 'Jude') },
+  // Les enseignements des apôtres se composent en deux temps : leurs discours
+  // dans les Actes, puis leurs lettres. Chaque temps reçoit sa part de journées
+  // au prorata du nombre d'unités, pour qu'une journée ne mêle jamais les deux.
+  {
+    id: 'lecture-apotres-90',
+    jours: 90,
+    composer: () => {
+      const lettres = corpus(entre('Romains', 'Jude'));
+      const unites = PREDICATIONS_DES_APOTRES.length + lettres.length;
+      const joursActes = Math.max(
+        1,
+        Math.round((PREDICATIONS_DES_APOTRES.length * 90) / unites),
+      );
+      return [
+        ...repartirPassages(PREDICATIONS_DES_APOTRES, joursActes),
+        ...parChapitresUniformes(lettres, 90 - joursActes).map((lot) => ({
+          portions: enPortions(lot),
+        })),
+      ];
+    },
+  },
   { id: 'lecture-proverbes-31', jours: 31, livres: ['Proverbes'] },
   { id: 'lecture-jean-60', jours: 60, livres: ['Jean', '1 Jean', '2 Jean', '3 Jean', 'Apocalypse'] },
   { id: 'lecture-luc-actes-60', jours: 60, livres: ['Luc', 'Actes'] },
@@ -393,7 +444,7 @@ const PLANS = [
 // Une borne fausse ne lèverait aucune erreur : `getPassage` rendrait simplement
 // moins de versets que prévu, et personne ne le verrait. On la refuse ici.
 const bornesFausses = [];
-for (const p of ENSEIGNEMENTS_DE_JESUS) {
+for (const p of [...ENSEIGNEMENTS_DE_JESUS, ...PREDICATIONS_DES_APOTRES]) {
   const nb = versetsParChapitre.get(`${p.livre}|${p.chapitre}`);
   if (!nb) bornesFausses.push(`${p.livre} ${p.chapitre} — chapitre absent de la Segond`);
   else if (p.versetFin > nb)
@@ -406,18 +457,31 @@ if (bornesFausses.length > 0) {
   process.exit(1);
 }
 
-const journeesJesus = repartirParEvangile(ENSEIGNEMENTS_DE_JESUS, 60);
+const resultat = {
+  'lecture-jesus-60': repartirParEvangile(ENSEIGNEMENTS_DE_JESUS, 60),
+};
 
-const resultat = {};
 const rapport = [];
 for (const plan of PLANS) {
-  const journees = decouper(plan.livres, plan.jours);
+  const journees = plan.composer ? plan.composer() : decouper(plan.livres, plan.jours);
   resultat[plan.id] = journees;
 
-  const chapitres = corpus(plan.livres);
-  const total = chapitres.reduce((n, c) => n + c.versets, 0);
+  const chapitres = plan.livres ? corpus(plan.livres) : [];
+  const total = journees.reduce(
+    (n, j) =>
+      n +
+      j.portions.reduce((m, p) => {
+        let somme = 0;
+        for (let c = p.chapitre; c <= (p.chapitreFin ?? p.chapitre); c++) {
+          const nb = versetsParChapitre.get(`${p.livre}|${c}`) ?? 0;
+          somme += (p.versetFin ?? nb) - (p.verset ?? 1) + 1;
+        }
+        return m + somme;
+      }, 0),
+    0,
+  );
   const charges = journees.map((j) =>
-    j.reduce((n, p) => {
+    j.portions.reduce((n, p) => {
       const debut = p.chapitre;
       const fin = p.chapitreFin ?? p.chapitre;
       let somme = 0;
@@ -428,6 +492,9 @@ for (const plan of PLANS) {
       return n + somme;
     }, 0),
   );
+  const chapitresParJour = journees.map((j) =>
+    j.portions.reduce((n, p) => n + (p.chapitreFin ?? p.chapitre) - p.chapitre + 1, 0),
+  );
   rapport.push({
     id: plan.id,
     jours: journees.length,
@@ -435,8 +502,10 @@ for (const plan of PLANS) {
     versets: total,
     min: Math.min(...charges),
     max: Math.max(...charges),
+    chMin: Math.min(...chapitresParJour),
+    chMax: Math.max(...chapitresParJour),
     moyenne: Math.round(total / plan.jours),
-    vides: journees.filter((j) => j.length === 0).length,
+    vides: journees.filter((j) => j.portions.length === 0).length,
   });
 }
 
@@ -454,37 +523,30 @@ fs.writeFileSync(
 
 import type { PortionLecture } from './plans-lecture';
 
-export const joursDesPlansDeLecture: Record<string, PortionLecture[][]> = ${JSON.stringify(
-    resultat,
-    null,
-    0,
-  )};
-
 /**
- * Les enseignements de Jésus : le seul plan dont les journées portent un titre,
- * parce qu'il ne traverse pas un livre mais rassemble des passages choisis dans
- * les quatre évangiles. La liste des passages est dans le générateur.
+ * Les journées de chaque plan. Une journée porte un titre lorsqu'elle
+ * correspond à un passage nommé — les enseignements de Jésus, les prédications
+ * des apôtres ; les traversées n'en ont pas, leur référence dit tout.
  */
-export const journeesDesEnseignementsDeJesus: { titre: string; portions: PortionLecture[] }[] = ${JSON.stringify(
-    journeesJesus,
-    null,
-    0,
-  )};
+export const joursDesPlansDeLecture: Record<
+  string,
+  { titre?: string; portions: PortionLecture[] }[]
+> = ${JSON.stringify(resultat, null, 0)};
 `,
   'utf8',
 );
 
-const versetsJesus = ENSEIGNEMENTS_DE_JESUS.reduce((n, p) => n + p.versetFin - p.verset + 1, 0);
-console.log(`✓ ${PLANS.length} plans découpés → ${path.relative(racine, sortie)}`);
+console.log(`✓ ${Object.keys(resultat).length} plans découpés → ${path.relative(racine, sortie)}`);
 console.log(
-  `  enseignements de Jésus : ${ENSEIGNEMENTS_DE_JESUS.length} passages, ${versetsJesus} versets, ` +
-    `répartis sur ${journeesJesus.length} journées\n`,
+  `  ${ENSEIGNEMENTS_DE_JESUS.length} enseignements de Jésus · ` +
+    `${PREDICATIONS_DES_APOTRES.length} prédications des apôtres\n`,
 );
 for (const r of rapport) {
   const alerte = r.vides > 0 ? `  ⚠ ${r.vides} journée(s) vide(s)` : '';
+  const uniforme = r.chMax - r.chMin <= 1 ? ' ' : '⚠';
   console.log(
     `  ${r.id.padEnd(28)} ${String(r.jours).padStart(3)} j · ${String(r.chapitres).padStart(4)} ch · ` +
-      `${String(r.versets).padStart(5)} v · ${String(r.min).padStart(3)}–${String(r.max).padStart(3)} v/jour ` +
-      `(moy. ${r.moyenne})${alerte}`,
+      `${uniforme} ${r.chMin}–${r.chMax} ch/jour · ` +
+      `${String(r.min).padStart(3)}–${String(r.max).padStart(3)} v/jour (moy. ${r.moyenne})${alerte}`,
   );
 }
