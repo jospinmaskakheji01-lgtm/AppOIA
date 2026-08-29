@@ -43,6 +43,13 @@ import {
   questionsB,
 } from '../src/data/oia-simplifiee';
 import { genreDuLivre } from '../src/data/genres';
+import {
+  PortionLecture,
+  chapitresDuJour,
+  formaterPortion,
+  formaterPortions,
+  plansLecture,
+} from '../src/data/plans-lecture';
 
 let echecs = 0;
 function verifier(nom: string, condition: boolean, detail?: unknown): void {
@@ -297,6 +304,139 @@ async function principal(): Promise<void> {
   verifier(
     'les clés des deux méthodes ne se recouvrent pas dans le stockage',
     questionsA.every((a) => !questionsB.some((b) => b.cle === (a.cle as string))),
+  );
+
+  // ————————————————————————————————————————————————————————————
+  // Plans de lecture
+  // ————————————————————————————————————————————————————————————
+
+  console.log('\nPlans de lecture');
+
+  /** Le texte d'une portion, tel que l'écran du jour l'affichera. */
+  function versetsDeLaPortion(p: PortionLecture) {
+    if (p.verset !== undefined) {
+      return getPassage('lsg1910', {
+        livre: p.livre,
+        chapitre: p.chapitre,
+        verset: p.verset,
+        versetFin: p.versetFin,
+      });
+    }
+    const sortie = [];
+    for (let c = p.chapitre; c <= (p.chapitreFin ?? p.chapitre); c++) {
+      sortie.push(...getPassage('lsg1910', { livre: p.livre, chapitre: c }));
+    }
+    return sortie;
+  }
+
+  verifier('les quinze plans de lecture sont là', plansLecture.length === 15, plansLecture.length);
+  verifier(
+    'chaque plan annonce le nombre de jours de son titre',
+    plansLecture.every((p) => p.sousTitre.startsWith(String(p.jours.length))),
+    plansLecture.map((p) => `${p.id}: ${p.jours.length} vs « ${p.sousTitre} »`).filter((x) => {
+      const [, n, libelle] = x.match(/: (\d+) vs « (.+) »/) ?? [];
+      return libelle && !libelle.startsWith(n);
+    }),
+  );
+  verifier(
+    'les journées sont numérotées de 1 à n, sans trou',
+    plansLecture.every((p) => p.jours.every((j, i) => j.jour === i + 1)),
+  );
+  verifier(
+    'aucune journée n’est vide',
+    plansLecture.every((p) => p.jours.every((j) => j.portions.length > 0)),
+    plansLecture
+      .flatMap((p) => p.jours.filter((j) => j.portions.length === 0).map((j) => `${p.id} j${j.jour}`))
+      .slice(0, 5),
+  );
+
+  // La vérification qui compte : une journée qui renverrait à un texte absent
+  // de la Segond afficherait un écran vide au lecteur.
+  const portionsMuettes: string[] = [];
+  let portionsLues = 0;
+  for (const plan of plansLecture) {
+    for (const jour of plan.jours) {
+      for (const portion of jour.portions) {
+        portionsLues += 1;
+        if (versetsDeLaPortion(portion).length === 0) {
+          portionsMuettes.push(`${plan.id} j${jour.jour} — ${formaterPortion(portion)}`);
+        }
+      }
+    }
+  }
+  verifier(
+    `les ${portionsLues} portions de lecture rendent toutes leur texte`,
+    portionsMuettes.length === 0,
+    portionsMuettes.slice(0, 5),
+  );
+
+  // Une portion partielle sans borne de fin laisserait le lecteur deviner où
+  // s'arrêter ; une borne inversée ne rendrait rien.
+  const bornesFausses = plansLecture.flatMap((p) =>
+    p.jours.flatMap((j) =>
+      j.portions
+        .filter(
+          (x) =>
+            (x.verset !== undefined && x.versetFin === undefined) ||
+            (x.versetFin !== undefined && x.verset === undefined) ||
+            (x.versetFin !== undefined && x.verset !== undefined && x.versetFin < x.verset) ||
+            (x.chapitreFin !== undefined && x.chapitreFin < x.chapitre),
+        )
+        .map((x) => `${p.id} j${j.jour} — ${JSON.stringify(x)}`),
+    ),
+  );
+  verifier('les bornes des portions sont complètes et dans l’ordre', bornesFausses.length === 0, bornesFausses.slice(0, 5));
+
+  // Une traversée doit couvrir son corpus sans trou ni répétition : c'est la
+  // promesse du plan. On la vérifie sur le plan le plus long.
+  const bible = plansLecture.find((p) => p.id === 'lecture-bible-365')!;
+  const chapitresLus = bible.jours.flatMap((j) =>
+    j.portions.flatMap((p) => {
+      const sortie: string[] = [];
+      for (let c = p.chapitre; c <= (p.chapitreFin ?? p.chapitre); c++) sortie.push(`${p.livre}|${c}`);
+      return sortie;
+    }),
+  );
+  verifier(
+    'la Bible en un an couvre les 1 189 chapitres, chacun une seule fois',
+    chapitresLus.length === 1189 && new Set(chapitresLus).size === 1189,
+    { lus: chapitresLus.length, distincts: new Set(chapitresLus).size },
+  );
+  const premierJour = bible.jours[0].portions[0];
+  const dernierePortion = bible.jours[364].portions[bible.jours[364].portions.length - 1];
+  verifier(
+    'elle commence à Genèse 1 et finit à Apocalypse 22',
+    premierJour.livre === 'Genèse' &&
+      premierJour.chapitre === 1 &&
+      dernierePortion.livre === 'Apocalypse' &&
+      (dernierePortion.chapitreFin ?? dernierePortion.chapitre) === 22,
+    [formaterPortions(bible.jours[0].portions), formaterPortions(bible.jours[364].portions)],
+  );
+
+  // Le plan sur les enseignements de Jésus est le seul choisi à la main : ses
+  // soixante journées doivent toutes porter un titre.
+  const jesus = plansLecture.find((p) => p.id === 'lecture-jesus-60')!;
+  verifier(
+    'les soixante journées sur les enseignements de Jésus portent un titre',
+    jesus.jours.length === 60 && jesus.jours.every((j) => Boolean(j.titre?.trim())),
+    jesus.jours.filter((j) => !j.titre).length,
+  );
+  verifier(
+    'elles ne tirent que des quatre évangiles',
+    jesus.jours.every((j) =>
+      j.portions.every((p) => ['Matthieu', 'Marc', 'Luc', 'Jean'].includes(p.livre)),
+    ),
+  );
+  verifier(
+    'aucune journée du plan de Jésus n’en répète une autre',
+    new Set(jesus.jours.map((j) => formaterPortions(j.portions))).size === 60,
+  );
+  verifier(
+    'Proverbes et Job donnent un chapitre par jour',
+    ['lecture-proverbes-31', 'lecture-job-42'].every((id) => {
+      const p = plansLecture.find((x) => x.id === id)!;
+      return p.jours.every((j) => chapitresDuJour(j.portions) === 1);
+    }),
   );
 
   console.log('\nCommentaire du disciple — Ancien Testament');

@@ -36,6 +36,8 @@ function Navigation() {
         <Stack.Screen name="passage/[id]" options={{ title: 'Lecture' }} />
         <Stack.Screen name="plan/[id]" options={{ title: 'Plan' }} />
         <Stack.Screen name="plan/[id]/jour/[jour]" options={{ title: 'Étude du jour' }} />
+        <Stack.Screen name="lecture/[id]" options={{ title: 'Plan de lecture' }} />
+        <Stack.Screen name="lecture/[id]/jour/[jour]" options={{ title: 'Lecture du jour' }} />
         <Stack.Screen name="meditation/[id]" options={{ headerShown: false }} />
         <Stack.Screen name="meditation/oia" options={{ headerShown: false }} />
         <Stack.Screen name="meditation/silence" options={{ headerShown: false }} />

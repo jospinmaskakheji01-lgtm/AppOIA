@@ -16,12 +16,13 @@ import {
 import { progressionTemps } from '../../src/data/oia';
 import { progressionSimplifiee } from '../../src/data/oia-simplifiee';
 import { plans } from '../../src/data/plans';
+import { chapitresDuJour, formaterPortions, plansLecture } from '../../src/data/plans-lecture';
 import { EtudeOIA, useApp } from '../../src/store/AppContext';
 import { fontSize, radius, spacing } from '../../src/theme/theme';
 import { dateCourte } from '../../src/utils/dates';
 import { BarreProgression } from './index';
 
-type Onglet = 'etudes' | 'plans';
+type Onglet = 'etudes' | 'plans' | 'lecture';
 
 export default function Etudier() {
   const { theme: t, etat } = useApp();
@@ -32,6 +33,8 @@ export default function Etudier() {
   const enCours = etat.etudes.filter((e) => !e.terminee);
   const commences = plans.filter((p) => etat.progressions[p.id]);
   const nouveaux = plans.filter((p) => !etat.progressions[p.id]);
+  const lecturesCommencees = plansLecture.filter((p) => etat.progressions[p.id]);
+  const lecturesNouvelles = plansLecture.filter((p) => !etat.progressions[p.id]);
 
   return (
     <ScrollView
@@ -93,13 +96,24 @@ export default function Etudier() {
         style={{ marginTop: spacing.sm }}
       />
 
-      <View style={{ flexDirection: 'row', gap: spacing.sm, marginTop: spacing.xl }}>
+      <View
+        style={{
+          flexDirection: 'row',
+          flexWrap: 'wrap',
+          gap: spacing.sm,
+          marginTop: spacing.xl,
+        }}>
         <Puce
           texte={`Mes études (${etat.etudes.length})`}
           actif={onglet === 'etudes'}
           onPress={() => setOnglet('etudes')}
         />
-        <Puce texte="Plans guidés" actif={onglet === 'plans'} onPress={() => setOnglet('plans')} />
+        <Puce texte="Plans d’étude" actif={onglet === 'plans'} onPress={() => setOnglet('plans')} />
+        <Puce
+          texte={`Plans de lecture (${plansLecture.length})`}
+          actif={onglet === 'lecture'}
+          onPress={() => setOnglet('lecture')}
+        />
       </View>
 
       {onglet === 'etudes' ? (
@@ -128,8 +142,14 @@ export default function Etudier() {
               <LigneEtude key={e.id} etude={e} onPress={() => router.push(`/oia/${e.id}`)} />
             ))}
         </>
-      ) : (
+      ) : null}
+
+      {onglet === 'plans' ? (
         <>
+          <SousTitre style={{ marginTop: spacing.lg }}>
+            Dix journées sur dix textes, chacune avec son contexte, ses pistes d’observation
+            et son interprétation. Ces plans apprennent la méthode.
+          </SousTitre>
           {commences.length > 0 ? <Separateur label="Plans commencés" /> : null}
           {commences.map((p) => {
             const prog = etat.progressions[p.id];
@@ -195,7 +215,85 @@ export default function Etudier() {
             </Carte>
           ))}
         </>
-      )}
+      ) : null}
+
+      {onglet === 'lecture' ? (
+        <>
+          <SousTitre style={{ marginTop: spacing.lg }}>
+            Une portion par jour, pour traverser un livre, un testament ou la Bible entière.
+            Chaque journée se lit dans l’application, puis se médite avec l’OIA simplifiée.
+          </SousTitre>
+
+          {lecturesCommencees.length > 0 ? <Separateur label="Lectures commencées" /> : null}
+          {lecturesCommencees.map((p) => {
+            const prog = etat.progressions[p.id];
+            const fini = prog.joursTermines.length >= p.jours.length;
+            const prochain =
+              p.jours.find((j) => !prog.joursTermines.includes(j.jour)) ?? p.jours[0];
+            return (
+              <Carte
+                key={p.id}
+                style={{ marginBottom: spacing.md }}
+                onPress={() => router.push(`/lecture/${p.id}`)}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
+                  <Symbole symbole={p.symbole} />
+                  <View style={{ flex: 1 }}>
+                    <Text style={{ color: t.colors.text, fontSize: fontSize.lg, fontWeight: '700' }}>
+                      {p.titre}
+                    </Text>
+                    <SousTitre style={{ marginTop: 2 }}>
+                      {fini
+                        ? 'Plan terminé — relisez-le quand vous voudrez'
+                        : `Prochain : jour ${prochain.jour} · ${prochain.titre ?? formaterPortions(prochain.portions)}`}
+                    </SousTitre>
+                  </View>
+                </View>
+                <BarreProgression valeur={prog.joursTermines.length / p.jours.length} />
+                <Text
+                  style={{ color: t.colors.textFaint, fontSize: fontSize.xs, marginTop: spacing.sm }}>
+                  {prog.joursTermines.length} / {p.jours.length} jours
+                </Text>
+              </Carte>
+            );
+          })}
+
+          <Separateur
+            label={lecturesCommencees.length > 0 ? 'Autres lectures' : 'Tous les plans de lecture'}
+          />
+
+          {lecturesNouvelles.map((p) => (
+            <Carte
+              key={p.id}
+              style={{ marginBottom: spacing.md }}
+              onPress={() => router.push(`/lecture/${p.id}`)}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
+                <Symbole symbole={p.symbole} />
+                <View style={{ flex: 1 }}>
+                  <Text style={{ color: t.colors.text, fontSize: fontSize.lg, fontWeight: '700' }}>
+                    {p.titre}
+                  </Text>
+                  <SousTitre style={{ marginTop: 2 }}>{p.parcours}</SousTitre>
+                </View>
+              </View>
+              <Text
+                style={{
+                  color: t.colors.textMuted,
+                  fontSize: fontSize.md,
+                  lineHeight: 23,
+                  marginTop: spacing.md,
+                }}>
+                {p.description}
+              </Text>
+              <View style={{ flexDirection: 'row', gap: spacing.sm, marginTop: spacing.md }}>
+                <Badge texte={p.sousTitre} />
+                <Badge
+                  texte={`≈ ${Math.max(1, Math.round(p.jours.reduce((n, j) => n + chapitresDuJour(j.portions), 0) / p.jours.length))} chapitre(s) / jour`}
+                />
+              </View>
+            </Carte>
+          ))}
+        </>
+      ) : null}
     </ScrollView>
   );
 }

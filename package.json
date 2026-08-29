@@ -42,7 +42,8 @@
     "test:base": "esbuild tests/base-connaissances.test.ts --bundle --platform=node --format=cjs --outfile=/tmp/lumiere-test.cjs --log-level=error && node /tmp/lumiere-test.cjs",
     "importer:version": "node scripts/importer-version.mjs",
     "importer:document": "node scripts/importer-document.mjs",
-    "extraire": "node scripts/extraire-document.mjs"
+    "extraire": "node scripts/extraire-document.mjs",
+    "generer:plans": "node scripts/generer-plans-lecture.mjs"
   },
   "private": true
 }
