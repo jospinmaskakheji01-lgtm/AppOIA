@@ -12,12 +12,16 @@
  * Le découpage des journées n'est pas écrit ici : il est calculé par
  * scripts/generer-plans-lecture.mjs, pesé en versets sur le texte de la Segond
  * installée, et déposé dans plans-lecture-jours.ts. Ce fichier-ci ne porte que
- * ce qui se décide et s'écrit : les titres, les descriptions, et les soixante
- * journées choisies du plan sur les enseignements de Jésus, qui n'est pas une
- * traversée mais un parcours.
+ * ce qui se décide et s'écrit : les titres et les descriptions des plans. La
+ * liste des passages du plan sur les enseignements de Jésus — le seul qui ne
+ * soit pas une traversée — est elle aussi dans le générateur, avec le nom de
+ * chaque enseignement.
  */
 
-import { joursDesPlansDeLecture } from './plans-lecture-jours';
+import {
+  journeesDesEnseignementsDeJesus,
+  joursDesPlansDeLecture,
+} from './plans-lecture-jours';
 
 /**
  * Une portion de lecture. Trois formes, et trois seulement :
@@ -79,80 +83,6 @@ export function formaterPortions(portions: PortionLecture[]): string {
 export function chapitresDuJour(portions: PortionLecture[]): number {
   return portions.reduce((n, p) => n + ((p.chapitreFin ?? p.chapitre) - p.chapitre + 1), 0);
 }
-
-// ————————————————————————————————————————————————————————————
-// Les enseignements de Jésus — soixante journées choisies
-// ————————————————————————————————————————————————————————————
-
-/**
- * Ce plan est le seul de la liste qui ne se lise pas d'un bout à l'autre d'un
- * livre. Il rassemble ce que Jésus a enseigné, à travers les quatre évangiles :
- * les discours, les paraboles, les réponses. L'ordre suit celui des évangiles —
- * Matthieu, Marc, Luc, Jean — plutôt qu'un ordre thématique, pour que chaque
- * enseignement garde le fil du récit dans lequel il a été donné.
- */
-const ENSEIGNEMENTS_DE_JESUS: [string, PortionLecture][] = [
-  [`Le royaume s'est approché`, { livre: 'Matthieu', chapitre: 4, verset: 17, versetFin: 25 }],
-  ['Les béatitudes', { livre: 'Matthieu', chapitre: 5, verset: 1, versetFin: 12 }],
-  ['Le sel, la lumière et la loi', { livre: 'Matthieu', chapitre: 5, verset: 13, versetFin: 20 }],
-  ['La colère et le regard', { livre: 'Matthieu', chapitre: 5, verset: 21, versetFin: 32 }],
-  [`Le serment, la riposte, l'ennemi`, { livre: 'Matthieu', chapitre: 5, verset: 33, versetFin: 48 }],
-  [`L'aumône et la prière dans le secret`, { livre: 'Matthieu', chapitre: 6, verset: 1, versetFin: 8 }],
-  ['Notre Père', { livre: 'Matthieu', chapitre: 6, verset: 9, versetFin: 15 }],
-  ['Le jeûne et les deux trésors', { livre: 'Matthieu', chapitre: 6, verset: 16, versetFin: 24 }],
-  ['Ne vous inquiétez pas', { livre: 'Matthieu', chapitre: 6, verset: 25, versetFin: 34 }],
-  ['Le jugement, la demande, la règle d’or', { livre: 'Matthieu', chapitre: 7, verset: 1, versetFin: 12 }],
-  ['Les deux chemins, les deux arbres, les deux maisons', { livre: 'Matthieu', chapitre: 7, verset: 13, versetFin: 29 }],
-  ['Le discours dans la plaine', { livre: 'Luc', chapitre: 6, verset: 20, versetFin: 38 }],
-  ['Le médecin et les outres neuves', { livre: 'Matthieu', chapitre: 9, verset: 9, versetFin: 17 }],
-  [`L'envoi des douze`, { livre: 'Matthieu', chapitre: 10, verset: 1, versetFin: 25 }],
-  ['Ne craignez pas ceux qui tuent le corps', { livre: 'Matthieu', chapitre: 10, verset: 26, versetFin: 42 }],
-  ['Venez à moi, vous qui êtes fatigués', { livre: 'Matthieu', chapitre: 11, verset: 20, versetFin: 30 }],
-  ['Le Seigneur du sabbat', { livre: 'Matthieu', chapitre: 12, verset: 1, versetFin: 21 }],
-  [`La maison divisée, et l'arbre à son fruit`, { livre: 'Matthieu', chapitre: 12, verset: 22, versetFin: 37 }],
-  ['Le semeur, et pourquoi des paraboles', { livre: 'Matthieu', chapitre: 13, verset: 1, versetFin: 23 }],
-  [`L'ivraie, le grain de moutarde, le trésor`, { livre: 'Matthieu', chapitre: 13, verset: 24, versetFin: 52 }],
-  [`Ce qui souille l'homme`, { livre: 'Matthieu', chapitre: 15, verset: 1, versetFin: 20 }],
-  ['« Qui dites-vous que je suis ? »', { livre: 'Matthieu', chapitre: 16, verset: 13, versetFin: 28 }],
-  ['Devenir comme un enfant', { livre: 'Matthieu', chapitre: 18, verset: 1, versetFin: 14 }],
-  ['Reprendre son frère, pardonner sans compter', { livre: 'Matthieu', chapitre: 18, verset: 15, versetFin: 35 }],
-  ['Le mariage, et les enfants qu’on écarte', { livre: 'Matthieu', chapitre: 19, verset: 1, versetFin: 15 }],
-  ['Le jeune homme riche', { livre: 'Matthieu', chapitre: 19, verset: 16, versetFin: 30 }],
-  ['Les ouvriers de la onzième heure', { livre: 'Matthieu', chapitre: 20, verset: 1, versetFin: 16 }],
-  ['Le plus grand sera votre serviteur', { livre: 'Matthieu', chapitre: 20, verset: 20, versetFin: 28 }],
-  ['Les deux fils, et les vignerons', { livre: 'Matthieu', chapitre: 21, verset: 23, versetFin: 46 }],
-  ['Les noces, et ce qui est à César', { livre: 'Matthieu', chapitre: 22, verset: 1, versetFin: 22 }],
-  ['La résurrection, et le plus grand commandement', { livre: 'Matthieu', chapitre: 22, verset: 23, versetFin: 46 }],
-  ['Malheur aux hypocrites', { livre: 'Matthieu', chapitre: 23, verset: 1, versetFin: 39 }],
-  ['Le discours sur la fin', { livre: 'Matthieu', chapitre: 24, verset: 1, versetFin: 31 }],
-  ['Veillez donc', { livre: 'Matthieu', chapitre: 24, verset: 32, versetFin: 51 }],
-  ['Les dix vierges, et les talents', { livre: 'Matthieu', chapitre: 25, verset: 1, versetFin: 30 }],
-  ['Le jugement des nations', { livre: 'Matthieu', chapitre: 25, verset: 31, versetFin: 46 }],
-  ['La lampe, et la semence qui pousse d’elle-même', { livre: 'Marc', chapitre: 4, verset: 21, versetFin: 34 }],
-  ['La tradition, et le cœur', { livre: 'Marc', chapitre: 7, verset: 1, versetFin: 23 }],
-  ['Prendre sa croix', { livre: 'Marc', chapitre: 8, verset: 31, versetFin: 38 }],
-  ['Qui est le plus grand', { livre: 'Marc', chapitre: 9, verset: 33, versetFin: 50 }],
-  ['Ce qui est impossible aux hommes', { livre: 'Marc', chapitre: 10, verset: 17, versetFin: 31 }],
-  ['Le premier commandement, et l’offrande de la veuve', { livre: 'Marc', chapitre: 12, verset: 28, versetFin: 44 }],
-  ['La lampe, et la vraie famille', { livre: 'Luc', chapitre: 8, verset: 4, versetFin: 21 }],
-  ['Le bon Samaritain ; Marthe et Marie', { livre: 'Luc', chapitre: 10, verset: 25, versetFin: 42 }],
-  ['Enseigne-nous à prier', { livre: 'Luc', chapitre: 11, verset: 1, versetFin: 13 }],
-  ['L’homme riche et insensé', { livre: 'Luc', chapitre: 12, verset: 1, versetFin: 21 }],
-  ['Le trésor du cœur, et le serviteur qui veille', { livre: 'Luc', chapitre: 12, verset: 22, versetFin: 48 }],
-  ['Le figuier stérile', { livre: 'Luc', chapitre: 13, verset: 1, versetFin: 21 }],
-  ['Les places à table, et le grand souper', { livre: 'Luc', chapitre: 14, verset: 1, versetFin: 24 }],
-  ['Bâtir la tour : le prix à payer', { livre: 'Luc', chapitre: 14, verset: 25, versetFin: 35 }],
-  ['La brebis, la drachme, le fils perdu', { livre: 'Luc', chapitre: 15, verset: 1, versetFin: 32 }],
-  ['L’économe infidèle, et le riche', { livre: 'Luc', chapitre: 16, verset: 1, versetFin: 31 }],
-  ['Le pardon, la foi, les dix lépreux', { livre: 'Luc', chapitre: 17, verset: 1, versetFin: 19 }],
-  ['La veuve ; le pharisien et le publicain', { livre: 'Luc', chapitre: 18, verset: 1, versetFin: 17 }],
-  ['Nicodème : naître de nouveau', { livre: 'Jean', chapitre: 3, verset: 1, versetFin: 21 }],
-  ['La Samaritaine : l’eau vive', { livre: 'Jean', chapitre: 4, verset: 1, versetFin: 26 }],
-  ['Le pain de vie', { livre: 'Jean', chapitre: 6, verset: 26, versetFin: 59 }],
-  ['Le bon berger', { livre: 'Jean', chapitre: 10, verset: 1, versetFin: 30 }],
-  ['Je suis le chemin, la vérité, la vie', { livre: 'Jean', chapitre: 14, verset: 1, versetFin: 31 }],
-  ['Le cep et les sarments', { livre: 'Jean', chapitre: 15, verset: 1, versetFin: 27 }],
-];
 
 // ————————————————————————————————————————————————————————————
 // Les plans
@@ -227,7 +157,7 @@ const FICHES: FichePlan[] = [
     sousTitre: '60 jours',
     parcours: 'Les quatre évangiles',
     symbole: '✝',
-    description: `Soixante journées choisies dans les quatre évangiles : les discours, les paraboles, les réponses. Ce plan ne lit pas les évangiles d'un bout à l'autre — il s'arrête sur ce que Jésus a enseigné, et le suit dans l'ordre où les évangiles le rapportent.`,
+    description: `Tout ce que Jésus a enseigné dans les quatre évangiles : les soixante-seize discours, paraboles et réponses, du sermon sur la montagne à la prière de Jean 17, répartis sur soixante journées. Ce plan ne lit pas les évangiles d'un bout à l'autre — il laisse de côté les récits qui ne portent pas d'enseignement — mais à l'intérieur de ce qu'il retient, rien ne manque. Les passages parallèles ne sont pas fusionnés : Matthieu, Marc, Luc et Jean gardent chacun leur voix.`,
   },
   {
     id: 'lecture-jean-60',
@@ -296,12 +226,10 @@ const FICHES: FichePlan[] = [
 ];
 
 function joursDuPlan(id: string): JourLecture[] {
+  // Les enseignements de Jésus sont le seul plan dont les journées portent un
+  // titre : il ne traverse pas un livre, il rassemble des passages.
   if (id === 'lecture-jesus-60') {
-    return ENSEIGNEMENTS_DE_JESUS.map(([titre, portion], i) => ({
-      jour: i + 1,
-      titre,
-      portions: [portion],
-    }));
+    return journeesDesEnseignementsDeJesus.map((j, i) => ({ jour: i + 1, ...j }));
   }
   const decoupage = joursDesPlansDeLecture[id] ?? [];
   return decoupage.map((portions, i) => ({ jour: i + 1, portions }));

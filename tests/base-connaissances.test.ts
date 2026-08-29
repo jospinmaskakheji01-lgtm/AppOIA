@@ -431,6 +431,47 @@ async function principal(): Promise<void> {
     'aucune journée du plan de Jésus n’en répète une autre',
     new Set(jesus.jours.map((j) => formaterPortions(j.portions))).size === 60,
   );
+  // Le plan doit couvrir les enseignements sans en perdre : les grands discours
+  // de chaque évangile doivent s'y retrouver.
+  const referencesJesus = jesus.jours.flatMap((j) => j.portions.map(formaterPortion));
+  const attendus = [
+    'Matthieu 5:1-16',
+    'Matthieu 10:1-42',
+    'Matthieu 13:1-52',
+    'Matthieu 24:1-51',
+    'Matthieu 25:1-46',
+    'Marc 4:1-34',
+    'Marc 13:1-37',
+    'Luc 15:1-32',
+    'Luc 16:1-31',
+    'Jean 3:1-21',
+    'Jean 15:1-27',
+    'Jean 17:1-26',
+  ];
+  const manquants = attendus.filter((r) => !referencesJesus.includes(r));
+  verifier('les grands discours des quatre évangiles y sont', manquants.length === 0, manquants);
+  verifier(
+    'les quatre évangiles sont représentés',
+    ['Matthieu', 'Marc', 'Luc', 'Jean'].every((l) =>
+      jesus.jours.some((j) => j.portions.some((p) => p.livre === l)),
+    ),
+  );
+  verifier(
+    'les passages ne se chevauchent pas',
+    (() => {
+      const vus = new Set<string>();
+      for (const j of jesus.jours) {
+        for (const p of j.portions) {
+          for (let v = p.verset!; v <= p.versetFin!; v++) {
+            const cle = `${p.livre}|${p.chapitre}|${v}`;
+            if (vus.has(cle)) return false;
+            vus.add(cle);
+          }
+        }
+      }
+      return true;
+    })(),
+  );
   verifier(
     'Proverbes et Job donnent un chapitre par jour',
     ['lecture-proverbes-31', 'lecture-job-42'].every((id) => {
