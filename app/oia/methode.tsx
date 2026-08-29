@@ -3,13 +3,21 @@ import { ScrollView, Text, View } from 'react-native';
 
 import { Carte, Etiquette, Puce, Separateur, SousTitre, Titre } from '../../src/components/ui';
 import {
+  CARACTERISTIQUES_APPLICATION,
   NOTE_APPLICATION,
+  NOTE_OBSERVATION,
   TEMPS_OIA,
   exempleOIA,
   questionsApplication,
   questionsInterpretation,
   questionsObservation,
 } from '../../src/data/oia';
+import {
+  MOUVEMENTS_SIMPLIFIES,
+  NOTE_SIMPLIFIEE,
+  questionsA,
+  questionsB,
+} from '../../src/data/oia-simplifiee';
 import { BlocConseils } from '../../src/components/oia-connaissance';
 import { getPassage } from '../../src/data/passages';
 import { conseilsPour, getSource } from '../../src/knowledge';
@@ -19,7 +27,7 @@ import { fontSize, radius, spacing } from '../../src/theme/theme';
 
 export default function Methode() {
   const { theme: t, etat } = useApp();
-  const [onglet, setOnglet] = useState<'methode' | 'exemple'>('methode');
+  const [onglet, setOnglet] = useState<'simplifiee' | 'methode' | 'exemple'>('simplifiee');
   const passage = getPassage(exempleOIA.passageId);
   const echelle = etat.reglages.tailleTexte;
 
@@ -31,17 +39,100 @@ export default function Methode() {
       <Etiquette>La méthode</Etiquette>
       <Titre style={{ marginTop: spacing.sm }}>OIA</Titre>
       <SousTitre style={{ marginTop: spacing.sm }}>
-        Trois temps pour étudier un texte biblique : observer ce qu’il dit, comprendre ce
-        qu’il veut dire, décider ce qu’il change.
+        Trois temps pour lire un texte biblique : observer ce qu’il dit, comprendre ce
+        qu’il veut dire, décider ce qu’il change. La méthode existe sous deux formes — la
+        simplifiée, pour la méditation personnelle quotidienne ; la générale, pour l’étude
+        biblique.
       </SousTitre>
 
-      <View style={{ flexDirection: 'row', gap: spacing.sm, marginTop: spacing.lg }}>
-        <Puce texte="Les trois temps" actif={onglet === 'methode'} onPress={() => setOnglet('methode')} />
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginTop: spacing.lg }}>
+        <Puce
+          texte="OIA simplifiée"
+          actif={onglet === 'simplifiee'}
+          onPress={() => setOnglet('simplifiee')}
+        />
+        <Puce texte="OIA générale" actif={onglet === 'methode'} onPress={() => setOnglet('methode')} />
         <Puce texte="Exemple travaillé" actif={onglet === 'exemple'} onPress={() => setOnglet('exemple')} />
       </View>
 
+      {onglet === 'simplifiee' ? (
+        <>
+          <SousTitre style={{ marginTop: spacing.lg }}>
+            Pour la méditation personnelle, celle qui tient en cinq, dix ou quinze minutes.
+            Elle se déroule en trois mouvements, et répond à deux séries de questions.
+          </SousTitre>
+
+          {MOUVEMENTS_SIMPLIFIES.map((m) => (
+            <View key={m.cle} style={{ marginTop: spacing.xl }}>
+              <Text style={{ color: t.colors.text, fontSize: fontSize.xl, fontWeight: '700' }}>
+                {m.titre}
+              </Text>
+              <Text
+                style={{
+                  color: t.colors.accent,
+                  fontSize: fontSize.md,
+                  fontWeight: '600',
+                  marginTop: 2,
+                }}>
+                {m.consigne}
+              </Text>
+              <Text
+                style={{
+                  color: t.colors.textMuted,
+                  fontSize: fontSize.md,
+                  lineHeight: 24,
+                  marginTop: spacing.sm,
+                }}>
+                {m.detail}
+              </Text>
+
+              {m.cle === 'mediter'
+                ? [
+                    { titre: 'Questions A', questions: questionsA },
+                    { titre: 'Questions B', questions: questionsB },
+                  ].map((serie) => (
+                    <View key={serie.titre}>
+                      <Separateur label={serie.titre} />
+                      {serie.questions.map((q) => (
+                        <Carte key={q.cle} style={{ marginBottom: spacing.sm }}>
+                          <Text
+                            style={{ color: t.colors.text, fontSize: fontSize.md, fontWeight: '700' }}>
+                            {q.question}
+                          </Text>
+                          <Text
+                            style={{
+                              color: t.colors.textMuted,
+                              fontSize: fontSize.sm,
+                              lineHeight: 22,
+                              marginTop: spacing.xs,
+                            }}>
+                            {q.aide}
+                          </Text>
+                        </Carte>
+                      ))}
+                    </View>
+                  ))
+                : null}
+            </View>
+          ))}
+
+          <Text
+            style={{
+              color: t.colors.textFaint,
+              fontSize: fontSize.sm,
+              fontStyle: 'italic',
+              marginTop: spacing.xl,
+            }}>
+            {NOTE_SIMPLIFIEE}
+          </Text>
+        </>
+      ) : null}
+
       {onglet === 'methode' ? (
         <>
+          <SousTitre style={{ marginTop: spacing.lg }}>
+            Pour l’étude biblique, qui demande une à deux heures.
+          </SousTitre>
           {TEMPS_OIA.map((temps) => {
             const questions =
               temps.cle === 'observation'
@@ -117,7 +208,7 @@ export default function Methode() {
                   </Carte>
                 ))}
 
-                {temps.cle === 'application' ? (
+                {temps.cle === 'observation' ? (
                   <Text
                     style={{
                       color: t.colors.textFaint,
@@ -125,8 +216,44 @@ export default function Methode() {
                       fontStyle: 'italic',
                       marginTop: spacing.md,
                     }}>
-                    {NOTE_APPLICATION}
+                    {NOTE_OBSERVATION}
                   </Text>
+                ) : null}
+
+                {temps.cle === 'application' ? (
+                  <>
+                    <Text
+                      style={{
+                        color: t.colors.textFaint,
+                        fontSize: fontSize.sm,
+                        fontStyle: 'italic',
+                        marginTop: spacing.md,
+                      }}>
+                      {NOTE_APPLICATION}
+                    </Text>
+                    <Separateur label="Caractéristiques de l’application" />
+                    <SousTitre style={{ marginBottom: spacing.md }}>
+                      D’après Rick Warren, l’application doit avoir ces quatre
+                      caractéristiques.
+                    </SousTitre>
+                    {CARACTERISTIQUES_APPLICATION.map((c) => (
+                      <Carte key={c.cle} style={{ marginBottom: spacing.sm }}>
+                        <Text
+                          style={{ color: t.colors.text, fontSize: fontSize.md, fontWeight: '700' }}>
+                          {c.titre}
+                        </Text>
+                        <Text
+                          style={{
+                            color: t.colors.textMuted,
+                            fontSize: fontSize.sm,
+                            lineHeight: 22,
+                            marginTop: spacing.xs,
+                          }}>
+                          {c.texte}
+                        </Text>
+                      </Carte>
+                    ))}
+                  </>
                 ) : null}
               </View>
             );
@@ -143,7 +270,9 @@ export default function Methode() {
           <BlocConseils conseils={conseilsPour('interpretation')} titre="Sur l’Interprétation" />
           <BlocConseils conseils={conseilsPour('application')} titre="Sur l’Application" />
         </>
-      ) : (
+      ) : null}
+
+      {onglet === 'exemple' ? (
         <>
           <Separateur label={`Exemple · ${exempleOIA.reference}`} />
 
@@ -186,11 +315,9 @@ export default function Methode() {
           <BlocExemple
             lettre="I"
             titre="Interprétation"
-            entrees={[
-              [`Où se situe ce texte ?`, exempleOIA.interpretation.salut],
-              [`Pour ses premiers destinataires`, exempleOIA.interpretation.destinataires],
-              [`Pour l’Église aujourd’hui`, exempleOIA.interpretation.eglise],
-            ]}
+            entrees={questionsInterpretation.map(
+              (q) => [q.question, exempleOIA.interpretation[q.cle]] as [string, string | undefined],
+            )}
           />
           <BlocExemple
             lettre="A"
@@ -222,7 +349,7 @@ export default function Methode() {
             </Text>
           </Carte>
         </>
-      )}
+      ) : null}
     </ScrollView>
   );
 }

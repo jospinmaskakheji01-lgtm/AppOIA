@@ -29,7 +29,19 @@ import {
   versionsDisponibles,
 } from '../src/knowledge';
 import { AssistantLocal } from '../src/knowledge/assistant';
-import { questionsApplication } from '../src/data/oia';
+import {
+  CARACTERISTIQUES_APPLICATION,
+  exempleOIA,
+  questionsApplication,
+  questionsInterpretation,
+  questionsObservation,
+} from '../src/data/oia';
+import {
+  MOUVEMENTS_SIMPLIFIES,
+  progressionSimplifiee,
+  questionsA,
+  questionsB,
+} from '../src/data/oia-simplifiee';
 import { genreDuLivre } from '../src/data/genres';
 
 let echecs = 0;
@@ -200,6 +212,91 @@ async function principal(): Promise<void> {
     'chacune des neuf questions d’Application porte le commentaire de son auteur',
     sansConseil.length === 0,
     sansConseil.map((q) => q.cle),
+  );
+
+  // ————————————————————————————————————————————————————————————
+  // Les deux méthodes, contre les documents de l'École d'Apollos
+  // ————————————————————————————————————————————————————————————
+
+  console.log('\nMéthode OIA générale');
+  verifier(
+    'les sept questions du journaliste, dans l’ordre du document',
+    questionsObservation.map((q) => q.cle).join(',') ===
+      'qui,quoi,ou,quand,comment,pourquoi,donc',
+    questionsObservation.map((q) => q.cle),
+  );
+  verifier(
+    'l’Interprétation pose les trois questions du document révisé',
+    questionsInterpretation.map((q) => q.cle).join(',') === 'destinataires,eglise,principes',
+    questionsInterpretation.map((q) => q.cle),
+  );
+  verifier(
+    'la question du genre littéraire est bien sous « Comment »',
+    questionsObservation
+      .find((q) => q.cle === 'comment')!
+      .sousQuestions.some((sq) => sq.includes('genre littéraire')),
+  );
+  verifier(
+    'l’Application garde ses neuf questions, toutes facultatives',
+    questionsApplication.length === 9 && questionsApplication.every((q) => q.facultative),
+    questionsApplication.length,
+  );
+  verifier(
+    'les quatre caractéristiques de l’application sont là',
+    CARACTERISTIQUES_APPLICATION.map((c) => c.cle).join(',') ===
+      'personnelle,pratique,possible,mesurable',
+    CARACTERISTIQUES_APPLICATION.map((c) => c.cle),
+  );
+  verifier(
+    'l’exemple travaillé répond à chaque question d’Observation et d’Interprétation',
+    questionsObservation.every((q) => exempleOIA.observation[q.cle].trim().length > 0) &&
+      questionsInterpretation.every((q) => exempleOIA.interpretation[q.cle].trim().length > 0),
+  );
+  const refExemple = analyserReference(exempleOIA.reference);
+  verifier(
+    'la référence de l’exemple est lisible et retrouve son passage',
+    Boolean(refExemple) && getPassage('lsg1910', refExemple!).length === 4,
+    refExemple,
+  );
+
+  console.log('\nMéthode OIA simplifiée');
+  verifier(
+    'les trois mouvements : méditez, priez, obéissez',
+    MOUVEMENTS_SIMPLIFIES.map((m) => m.cle).join(',') === 'mediter,prier,obeir',
+    MOUVEMENTS_SIMPLIFIES.map((m) => m.cle),
+  );
+  verifier(
+    'les huit questions A du document',
+    questionsA.length === 8 &&
+      questionsA.map((q) => q.cle).join(',') ===
+        'sujet,trinite,exemple,ordre,promesse,avertissement,verite,passages',
+    questionsA.map((q) => q.cle),
+  );
+  verifier(
+    'les questions B : le verset qui interpelle, puis les quatre axes de prière',
+    questionsB.length === 5 &&
+      questionsB[0].cle === 'versetInterpellant' &&
+      questionsB.slice(1).map((q) => q.cle).join(',') ===
+        'repentir,croireObeir,remercier,demander',
+    questionsB.map((q) => q.cle),
+  );
+  verifier(
+    'aucune question des deux méthodes n’est laissée sans aide',
+    [...questionsA, ...questionsB, ...questionsObservation, ...questionsInterpretation].every(
+      (q) => q.aide.trim().length > 0,
+    ),
+  );
+  verifier(
+    'la progression d’une méditation vide est nulle, celle d’une méditation remplie entière',
+    progressionSimplifiee({}, 'questionsA') === 0 &&
+      progressionSimplifiee(
+        Object.fromEntries(questionsA.map((q) => [q.cle, 'x'])),
+        'questionsA',
+      ) === 1,
+  );
+  verifier(
+    'les clés des deux méthodes ne se recouvrent pas dans le stockage',
+    questionsA.every((a) => !questionsB.some((b) => b.cle === (a.cle as string))),
   );
 
   console.log('\nCommentaire du disciple — Ancien Testament');

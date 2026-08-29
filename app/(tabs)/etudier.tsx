@@ -14,6 +14,7 @@ import {
   Titre,
 } from '../../src/components/ui';
 import { progressionTemps } from '../../src/data/oia';
+import { progressionSimplifiee } from '../../src/data/oia-simplifiee';
 import { plans } from '../../src/data/plans';
 import { EtudeOIA, useApp } from '../../src/store/AppContext';
 import { fontSize, radius, spacing } from '../../src/theme/theme';
@@ -44,8 +45,8 @@ export default function Etudier() {
       <Etiquette>Observation · Interprétation · Application</Etiquette>
       <Titre style={{ marginTop: spacing.sm }}>Étudier</Titre>
       <SousTitre style={{ marginTop: spacing.sm }}>
-        Toute étude suit la méthode OIA : observer ce que le texte dit, comprendre ce
-        qu’il veut dire, décider ce qu’il change.
+        Deux méthodes, selon le temps dont vous disposez : la méditation quotidienne
+        simplifiée, et l’étude biblique complète.
       </SousTitre>
 
       <Carte
@@ -81,9 +82,15 @@ export default function Etudier() {
       </Carte>
 
       <Bouton
-        titre="Nouvelle étude OIA"
-        onPress={() => router.push('/oia/nouvelle')}
+        titre="Méditation du jour · 5 à 15 min"
+        onPress={() => router.push('/oia/nouvelle?methode=simplifiee')}
         style={{ marginTop: spacing.md }}
+      />
+      <Bouton
+        titre="Étude biblique complète · 1 à 2 h"
+        variante="secondaire"
+        onPress={() => router.push('/oia/nouvelle?methode=generale')}
+        style={{ marginTop: spacing.sm }}
       />
 
       <View style={{ flexDirection: 'row', gap: spacing.sm, marginTop: spacing.xl }}>
@@ -103,8 +110,8 @@ export default function Etudier() {
                 Vous n’avez pas encore d’étude.
               </Text>
               <SousTitre style={{ marginTop: spacing.md }}>
-                Commencez par un plan guidé, qui vous donne le contexte et des pistes
-                d’observation, ou lancez une étude libre sur le passage de votre choix.
+                Commencez par la méditation du jour, qui tient en quelques minutes ; gardez
+                l’étude complète pour un temps plus long, seul ou en groupe.
               </SousTitre>
             </Carte>
           ) : null}
@@ -195,11 +202,18 @@ export default function Etudier() {
 
 function LigneEtude({ etude, onPress }: { etude: EtudeOIA; onPress: () => void }) {
   const { theme: t } = useApp();
-  const parts: [string, number][] = [
-    ['O', progressionTemps(etude.observation, 'observation')],
-    ['I', progressionTemps(etude.interpretation, 'interpretation')],
-    ['A', progressionTemps(etude.application, 'application')],
-  ];
+  const simplifiee = etude.methode === 'simplifiee';
+  // Les deux méthodes n'ont pas les mêmes étapes : la barre suit celle employée.
+  const parts: [string, number][] = simplifiee
+    ? [
+        ['A', progressionSimplifiee(etude.questionsA, 'questionsA')],
+        ['B', progressionSimplifiee(etude.questionsB, 'questionsB')],
+      ]
+    : [
+        ['O', progressionTemps(etude.observation, 'observation')],
+        ['I', progressionTemps(etude.interpretation, 'interpretation')],
+        ['A', progressionTemps(etude.application, 'application')],
+      ];
   return (
     <Carte style={{ marginBottom: spacing.sm }} onPress={onPress}>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
@@ -208,7 +222,12 @@ function LigneEtude({ etude, onPress }: { etude: EtudeOIA; onPress: () => void }
             {etude.reference}
           </Text>
           <Text style={{ color: t.colors.textFaint, fontSize: fontSize.xs, marginTop: 2 }}>
-            {etude.planId ? 'Plan guidé' : 'Étude libre'} · {dateCourte(etude.modifie.slice(0, 10))}
+            {etude.planId
+              ? 'Plan guidé'
+              : simplifiee
+                ? 'Méditation quotidienne'
+                : 'Étude biblique'}{' '}
+            · {dateCourte(etude.modifie.slice(0, 10))}
           </Text>
         </View>
         {etude.terminee ? (

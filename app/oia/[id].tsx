@@ -1,4 +1,4 @@
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
@@ -13,14 +13,17 @@ import {
   View,
 } from 'react-native';
 
+import { AtelierSimplifie } from '../../src/components/atelier-simplifie';
 import { BandeauTemps, BlocRevelable, CarteFicheLivre, ChampOIA } from '../../src/components/oia';
 import { Bouton, Carte, Etiquette, Separateur, SousTitre } from '../../src/components/ui';
 import { getFiche } from '../../src/data/livres';
 import {
+  CARACTERISTIQUES_APPLICATION,
   CleApplication,
   CleInterpretation,
   CleObservation,
   NOTE_APPLICATION,
+  NOTE_OBSERVATION,
   TEMPS_OIA,
   progressionTemps,
   questionsApplication,
@@ -64,6 +67,14 @@ export default function AtelierOIA() {
   const [versetMemoire, setVersetMemoire] = useState(() => etude?.versetMemoire ?? '');
   const [temps, setTemps] = useState<Temps>('observation');
   const defilement = useRef<ScrollView>(null);
+
+  // Le titre de l'écran dit laquelle des deux méthodes est ouverte.
+  const navigation = useNavigation();
+  useEffect(() => {
+    navigation.setOptions({
+      title: etude?.methode === 'simplifiee' ? 'Méditation OIA' : 'Étude OIA',
+    });
+  }, [navigation, etude?.methode]);
 
   const etudeId = etude?.id;
   const enregistrer = useCallback(() => {
@@ -131,6 +142,9 @@ export default function AtelierOIA() {
       </View>
     );
   }
+
+  // La méditation quotidienne a sa propre méthode, et donc son propre atelier.
+  if (etude.methode === 'simplifiee') return <AtelierSimplifie etude={etude} />;
 
   const echelle = etat.reglages.tailleTexte;
   const changerTemps = (nouveau: Temps) => {
@@ -280,6 +294,7 @@ export default function AtelierOIA() {
 
         {temps === 'observation' ? (
           <>
+            <SousTitre style={{ marginBottom: spacing.lg }}>{NOTE_OBSERVATION}</SousTitre>
             {fiche ? <CarteFicheLivre fiche={fiche} /> : null}
             <BlocConseils
               conseils={conseils.observation}
@@ -392,6 +407,30 @@ export default function AtelierOIA() {
         {temps === 'application' ? (
           <>
             <SousTitre style={{ marginBottom: spacing.lg }}>{NOTE_APPLICATION}</SousTitre>
+
+            <Carte style={{ marginBottom: spacing.lg }}>
+              <Etiquette>Une application qui tiendra</Etiquette>
+              <SousTitre style={{ marginTop: spacing.xs, marginBottom: spacing.md }}>
+                Les quatre caractéristiques que le document retient de Rick Warren.
+              </SousTitre>
+              {CARACTERISTIQUES_APPLICATION.map((c) => (
+                <View key={c.cle} style={{ flexDirection: 'row', gap: spacing.md, marginTop: spacing.sm }}>
+                  <Text style={{ color: t.colors.accent, fontWeight: '700', fontSize: fontSize.sm }}>
+                    ›
+                  </Text>
+                  <Text
+                    style={{
+                      color: t.colors.textMuted,
+                      fontSize: fontSize.sm,
+                      lineHeight: 22,
+                      flex: 1,
+                    }}>
+                    <Text style={{ color: t.colors.text, fontWeight: '700' }}>{c.titre}</Text> —{' '}
+                    {c.texte}
+                  </Text>
+                </View>
+              ))}
+            </Carte>
 
             <BlocConseils
               conseils={conseils.application}

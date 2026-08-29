@@ -202,7 +202,27 @@ export default function Aujourdhui() {
         </Carte>
       )}
 
-      <Carte style={{ marginTop: spacing.md }} onPress={() => router.push('/oia/nouvelle')}>
+      <Carte
+        style={{ marginTop: spacing.md }}
+        onPress={() => router.push('/oia/nouvelle?methode=simplifiee')}>
+        <Etiquette>Méditation du jour</Etiquette>
+        <Text
+          style={{
+            color: t.colors.text,
+            fontSize: fontSize.xl,
+            fontWeight: '700',
+            marginTop: spacing.sm,
+          }}>
+          Méditer un passage avec l’OIA simplifiée
+        </Text>
+        <SousTitre style={{ marginTop: spacing.xs }}>
+          Méditez, priez, obéissez — 5 à 15 minutes devant la Parole
+        </SousTitre>
+      </Carte>
+
+      <Carte
+        style={{ marginTop: spacing.md }}
+        onPress={() => router.push('/oia/nouvelle?methode=generale')}>
         <Etiquette>Étude libre</Etiquette>
         <Text
           style={{

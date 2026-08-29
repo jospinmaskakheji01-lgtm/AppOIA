@@ -232,12 +232,21 @@ export default function DossierPassage() {
       )}
 
       <Bouton
-        titre="Étudier ce passage (méthode OIA)"
+        titre="Méditer ce passage · OIA simplifiée"
+        onPress={() => {
+          const etude = creerEtude({ reference: dossier.libelle, methode: 'simplifiee' });
+          router.push(`/oia/${etude.id}`);
+        }}
+        style={{ marginTop: spacing.xl }}
+      />
+      <Bouton
+        titre="Étudier ce passage · OIA complète"
+        variante="secondaire"
         onPress={() => {
           const etude = creerEtude({ reference: dossier.libelle });
           router.push(`/oia/${etude.id}`);
         }}
-        style={{ marginTop: spacing.xl }}
+        style={{ marginTop: spacing.sm }}
       />
       <Bouton
         titre="Partager"

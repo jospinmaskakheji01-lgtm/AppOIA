@@ -94,16 +94,29 @@ export default function LecturePassage() {
       </Text>
 
       <Bouton
-        titre="Étudier ce texte avec la méthode OIA"
+        titre="Méditer ce texte · OIA simplifiée"
         onPress={() => {
-          const etude = creerEtude({ reference: passage.reference, passageId: passage.id });
+          const etude = creerEtude({
+            reference: passage.reference,
+            passageId: passage.id,
+            methode: 'simplifiee',
+          });
           router.push(`/oia/${etude.id}`);
         }}
         style={{ marginTop: spacing.xl }}
       />
       <Bouton
-        titre="Méditer ce texte (OIA guidé)"
+        titre="Étudier ce texte · OIA complète"
         variante="secondaire"
+        onPress={() => {
+          const etude = creerEtude({ reference: passage.reference, passageId: passage.id });
+          router.push(`/oia/${etude.id}`);
+        }}
+        style={{ marginTop: spacing.md }}
+      />
+      <Bouton
+        titre="Méditer en silence (OIA guidé)"
+        variante="discret"
         onPress={() => router.push(`/meditation/oia?passage=${passage.id}`)}
         style={{ marginTop: spacing.md }}
       />

@@ -10,23 +10,49 @@ import React, {
 import { useColorScheme } from 'react-native';
 
 import { CleApplication, CleInterpretation, CleObservation } from '../data/oia';
+import { CleQuestionA, CleQuestionB } from '../data/oia-simplifiee';
 import { Theme, ThemeName, themes } from '../theme/theme';
 import { calculerSerie, cleJour } from '../utils/dates';
 
 const CLE_STOCKAGE = '@lumiere/etat-v1';
 
-/** Une étude conduite selon la méthode OIA. */
+/**
+ * Les deux méthodes du document de référence. La générale est l'étude
+ * biblique, qui demande une à deux heures ; la simplifiée est la méditation
+ * personnelle quotidienne, qui tient en cinq à quinze minutes.
+ */
+export type MethodeOIA = 'generale' | 'simplifiee';
+
+/**
+ * Un travail conduit sur un passage, selon l'une des deux méthodes.
+ *
+ * Les deux partagent la référence, l'engagement, le verset à mémoriser et le
+ * rattachement à un plan ; les champs propres à chacune restent vides pour
+ * l'autre. Une seule entité, pour que les listes, les plans, la série et le
+ * partage n'aient pas à connaître la méthode employée.
+ */
 export interface EtudeOIA {
   id: string;
+  /** Méthode employée. Les études d'avant cette distinction sont générales. */
+  methode: MethodeOIA;
   /** Passage de la bibliothèque, quand l'étude en part. */
   passageId?: string;
   /** Référence affichée — celle du passage, ou une référence saisie librement. */
   reference: string;
   cree: string;
   modifie: string;
+  // — Méthode générale —
   observation: Partial<Record<CleObservation, string>>;
   interpretation: Partial<Record<CleInterpretation, string>>;
   application: Partial<Record<CleApplication, string>>;
+  // — Méthode simplifiée —
+  /** Les questions A : ce que le passage dit. */
+  questionsA?: Partial<Record<CleQuestionA, string>>;
+  /** Les questions B : le verset qui interpelle, et les quatre axes de prière. */
+  questionsB?: Partial<Record<CleQuestionB, string>>;
+  /** Le mouvement « Priez » : la méditation retournée en prière. */
+  priere?: string;
+  /** Commun aux deux : ce que je décide de mettre en pratique. */
   engagement: string;
   versetMemoire: string;
   terminee: boolean;
@@ -126,6 +152,8 @@ interface ContexteApp {
   marquerJourTermine: (date?: string) => void;
   creerEtude: (init: {
     reference: string;
+    /** Par défaut la méthode générale : c'est celle de l'étude biblique. */
+    methode?: MethodeOIA;
     passageId?: string;
     planId?: string;
     jour?: number;
@@ -153,6 +181,28 @@ function id(): string {
   return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
+/**
+ * Rattraper les études enregistrées avant la révision du document de méthode.
+ *
+ * Deux choses ont changé. La méthode n'était pas notée, puisqu'il n'y en avait
+ * qu'une : ces études sont générales. Et l'Interprétation ne demande plus « où
+ * se situe ce texte dans l'histoire du Salut » mais « quels principes
+ * permanents se dégagent du texte » ; ce qui avait été écrit sous l'ancienne
+ * question est repris sous la nouvelle, qui est forcément vide, plutôt que
+ * perdu.
+ */
+function migrerEtude(brute: EtudeOIA & { interpretation?: Record<string, string> }): EtudeOIA {
+  const { salut, ...interpretation } = (brute.interpretation ?? {}) as Record<string, string>;
+  return {
+    ...brute,
+    methode: brute.methode ?? 'generale',
+    interpretation: {
+      ...interpretation,
+      ...(salut && !interpretation.principes ? { principes: salut } : {}),
+    },
+  };
+}
+
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const [etat, setEtat] = useState<EtatApp>(ETAT_INITIAL);
   const [pret, setPret] = useState(false);
@@ -168,6 +218,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           setEtat({
             ...ETAT_INITIAL,
             ...charge,
+            etudes: (charge.etudes ?? []).map(migrerEtude),
             reglages: { ...ETAT_INITIAL.reglages, ...(charge.reglages ?? {}) },
           });
         }
@@ -197,10 +248,17 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const creerEtude = useCallback(
-    (init: { reference: string; passageId?: string; planId?: string; jour?: number }) => {
+    (init: {
+      reference: string;
+      methode?: MethodeOIA;
+      passageId?: string;
+      planId?: string;
+      jour?: number;
+    }) => {
       const maintenant = new Date().toISOString();
       const etude: EtudeOIA = {
         id: id(),
+        methode: init.methode ?? 'generale',
         reference: init.reference,
         passageId: init.passageId,
         planId: init.planId,
@@ -210,6 +268,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         observation: {},
         interpretation: {},
         application: {},
+        questionsA: {},
+        questionsB: {},
+        priere: '',
         engagement: '',
         versetMemoire: '',
         terminee: false,

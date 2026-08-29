@@ -68,9 +68,20 @@ export default function Mediter() {
         </View>
       </Carte>
 
+      <Carte
+        style={{ marginTop: spacing.md }}
+        onPress={() => router.push('/oia/nouvelle?methode=simplifiee')}>
+        <Text style={{ color: t.colors.text, fontSize: fontSize.xl, fontWeight: '700' }}>
+          Méditation écrite · OIA simplifiée
+        </Text>
+        <SousTitre style={{ marginTop: spacing.xs }}>
+          Méditez, priez, obéissez — les deux séries de questions, notées · 5 à 15 min
+        </SousTitre>
+      </Carte>
+
       <SousTitre style={{ marginTop: spacing.md }}>
-        Pour l’étude écrite complète, avec les questions de chaque temps, passez par
-        l’onglet Étudier.
+        C’est la méthode de la méditation personnelle. Pour l’étude biblique complète, avec
+        les questions de chaque temps, passez par l’onglet Étudier.
       </SousTitre>
 
       <Separateur label="Méditations guidées" />

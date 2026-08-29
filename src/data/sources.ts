@@ -15,6 +15,8 @@ export const SOURCE_LSG = 'bible-lsg-1910';
 export const SOURCE_PAROLE_VIVANTE = 'bible-parole-vivante';
 export const SOURCE_REDACTION = 'lumiere-redaction';
 export const SOURCE_METHODE_OIA = 'methode-oia';
+export const SOURCE_OIA_GENERALE = 'ecole-apollos-oia-generale';
+export const SOURCE_OIA_SIMPLIFIEE = 'ecole-apollos-oia-simplifiee';
 
 export const sources: Source[] = [
   {
@@ -60,6 +62,26 @@ export const sources: Source[] = [
     documentOrigine: 'MODALITE_METHODE_OIA.pdf',
     abreviation: 'OIA',
     ajouteLe: '2026-08-22',
+  },
+  {
+    id: SOURCE_OIA_GENERALE,
+    titre: `Méthode O.I.A — École d'Apollos`,
+    langue: 'fr',
+    type: 'enseignement',
+    noteProvenance: `Document d'enseignement transmis par l'utilisateur. Il fixe les sept questions de l'Observation, les trois de l'Interprétation, les neuf de l'Application et les quatre caractéristiques de l'application, avec l'exemple travaillé de Luc 8:22-25.`,
+    documentOrigine: 'MEDITATION-OIA GENERALE.pdf',
+    abreviation: 'OIA gén.',
+    ajouteLe: '2026-08-29',
+  },
+  {
+    id: SOURCE_OIA_SIMPLIFIEE,
+    titre: `Méthode O.I.A simplifiée — École d'Apollos`,
+    langue: 'fr',
+    type: 'enseignement',
+    noteProvenance: `Document d'enseignement transmis par l'utilisateur. Il fixe la méditation personnelle quotidienne : les questions A et B, puis les mouvements Priez et Obéissez. C'est la méthode que les étudiants utilisent d'après le calendrier de l'école.`,
+    documentOrigine: 'MEDITATION OIA SIMPLIFIEE.pdf',
+    abreviation: 'OIA simpl.',
+    ajouteLe: '2026-08-29',
   },
 ];
 
