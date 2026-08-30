@@ -199,6 +199,7 @@ interface ContexteApp {
   basculerMemorise: (ref: string) => void;
   ajouterMeditation: (minutes: number) => void;
   majReglages: (reglages: Partial<Reglages>) => void;
+  effacerMesDonnees: () => void;
 }
 
 const Contexte = createContext<ContexteApp | undefined>(undefined);
@@ -403,6 +404,15 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setEtat((e) => ({ ...e, travaux: e.travaux.filter((x) => x.id !== travailId) }));
   }, []);
 
+  /**
+   * Effacer tout ce que l'utilisateur a écrit, et lui seul : les réglages
+   * restent, parce que retrouver une application en anglais, en thème clair et
+   * sans son prénom après avoir effacé son journal serait une punition de plus.
+   */
+  const effacerMesDonnees = useCallback(() => {
+    setEtat((e) => ({ ...ETAT_INITIAL, reglages: e.reglages }));
+  }, []);
+
   const etudeDuPlan = useCallback(
     (planId: string, jour: number) =>
       etat.etudes.find((x) => x.planId === planId && x.jour === jour),
@@ -544,6 +554,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       majTravail,
       terminerTravail,
       supprimerTravail,
+      effacerMesDonnees,
       terminerJourPlan,
       reinitialiserPlan,
       ajouterEntree,
@@ -571,6 +582,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       majTravail,
       terminerTravail,
       supprimerTravail,
+      effacerMesDonnees,
       terminerJourPlan,
       reinitialiserPlan,
       ajouterEntree,

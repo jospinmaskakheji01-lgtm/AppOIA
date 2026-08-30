@@ -56,7 +56,7 @@ function Navigation() {
         <Stack.Screen name="dictionnaire/[id]" options={{ title: 'Dictionnaire' }} />
         <Stack.Screen name="journal/nouvelle" options={{ title: 'Nouvelle entrée', presentation: 'modal' }} />
         <Stack.Screen name="prieres" options={{ title: 'Mes prières' }} />
-        <Stack.Screen name="reglages" options={{ title: 'Réglages' }} />
+        <Stack.Screen name="reglages" options={{ title: "Plus" }} />
       </Stack>
     </>
   );
