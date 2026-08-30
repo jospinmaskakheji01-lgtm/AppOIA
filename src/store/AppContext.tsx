@@ -7,10 +7,10 @@ import React, {
   useMemo,
   useState,
 } from 'react';
-import { useColorScheme } from 'react-native';
 
 import { CleApplication, CleInterpretation, CleObservation } from '../data/oia';
 import { CleQuestionA, CleQuestionB } from '../data/oia-simplifiee';
+import { useSchemaSysteme } from '../theme/schema-systeme';
 import { Theme, ThemeName, themes } from '../theme/theme';
 import { calculerSerie, cleJour } from '../utils/dates';
 
@@ -233,7 +233,7 @@ function migrerEtude(brute: EtudeOIA & { interpretation?: Record<string, string>
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const [etat, setEtat] = useState<EtatApp>(ETAT_INITIAL);
   const [pret, setPret] = useState(false);
-  const schemaSysteme = useColorScheme();
+  const schemaSysteme = useSchemaSysteme();
 
   useEffect(() => {
     let annule = false;

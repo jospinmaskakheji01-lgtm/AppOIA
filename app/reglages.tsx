@@ -21,7 +21,12 @@ import {
   IconeRayonnage,
   IconeTexte,
 } from '../src/components/icons';
-import { GroupeReglages, LigneBascule, LigneReglage } from '../src/components/reglages';
+import {
+  ChoixTheme,
+  GroupeReglages,
+  LigneBascule,
+  LigneReglage,
+} from '../src/components/reglages';
 import { Etiquette, Puce, SousTitre, Statistique, Titre } from '../src/components/ui';
 import { fichesLivres } from '../src/data/livres';
 import { methodesEtude } from '../src/data/methodes-etude';
@@ -41,11 +46,12 @@ const TAILLES: { label: string; valeur: number }[] = [
   { label: 'Grand', valeur: 1.15 },
   { label: 'Très grand', valeur: 1.3 },
 ];
-const THEMES: { label: string; valeur: 'systeme' | 'aube' | 'veillee' }[] = [
-  { label: 'Système', valeur: 'systeme' },
-  { label: 'Aube (clair)', valeur: 'aube' },
-  { label: 'Veillée (sombre)', valeur: 'veillee' },
-];
+/** Le nom que porte chaque thème à l'écran : celui qu'on emploie pour en parler. */
+const NOM_THEME: Record<'systeme' | 'aube' | 'veillee', string> = {
+  systeme: 'Système',
+  aube: 'Clair',
+  veillee: 'Sombre',
+};
 
 /**
  * L'écran « Plus » : ce qui n'est pas la lecture du jour.
@@ -257,18 +263,12 @@ export default function Reglages() {
           icone={IconeAube}
           teinte="or"
           titre="Thème"
-          valeur={THEMES.find((x) => x.valeur === etat.reglages.theme)?.label}
+          valeur={NOM_THEME[etat.reglages.theme]}
           depliable>
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm }}>
-            {THEMES.map((x) => (
-              <Puce
-                key={x.valeur}
-                texte={x.label}
-                actif={etat.reglages.theme === x.valeur}
-                onPress={() => majReglages({ theme: x.valeur })}
-              />
-            ))}
-          </View>
+          <ChoixTheme
+            valeur={etat.reglages.theme}
+            onChange={(v) => majReglages({ theme: v })}
+          />
         </LigneReglage>
 
         <LigneReglage

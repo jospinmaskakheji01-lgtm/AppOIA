@@ -1,6 +1,7 @@
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
+import * as SystemUI from 'expo-system-ui';
 import React, { useEffect } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
@@ -18,6 +19,13 @@ function Navigation() {
   useEffect(() => {
     if (pret) SplashScreen.hideAsync().catch(() => {});
   }, [pret]);
+
+  // Le fond que le système peint derrière l'application — la barre de
+  // navigation d'Android, et le blanc qui apparaît en fin de défilement. Sans
+  // cela, le thème sombre laisse une bande claire en bas de l'écran.
+  useEffect(() => {
+    SystemUI.setBackgroundColorAsync(theme.colors.background).catch(() => {});
+  }, [theme.colors.background]);
 
   if (!pret) return null;
 

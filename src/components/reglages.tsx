@@ -244,3 +244,114 @@ export function LigneBascule({
     </View>
   );
 }
+
+/**
+ * Le choix du thème, avec un aperçu de chacun.
+ *
+ * Trois vignettes plutôt que trois mots : « clair » et « sombre » se
+ * reconnaissent d'un coup d'œil, et « système » se comprend mieux quand on le
+ * voit coupé en deux. La vignette n'est pas une image mais les vraies couleurs
+ * des thèmes — elle ne peut donc pas mentir sur ce qu'on va obtenir.
+ */
+export function ChoixTheme({
+  valeur,
+  onChange,
+}: {
+  valeur: 'systeme' | 'aube' | 'veillee';
+  onChange: (v: 'systeme' | 'aube' | 'veillee') => void;
+}) {
+  const t = useTheme();
+  const choix = [
+    { cle: 'clair', label: 'Clair', valeur: 'aube' as const },
+    { cle: 'sombre', label: 'Sombre', valeur: 'veillee' as const },
+    { cle: 'systeme', label: 'Système', valeur: 'systeme' as const },
+  ];
+
+  return (
+    <View>
+      <View style={{ flexDirection: 'row', gap: spacing.md }}>
+        {choix.map((c) => {
+          const actif = valeur === c.valeur;
+          return (
+            <Pressable
+              key={c.cle}
+              onPress={() => onChange(c.valeur)}
+              accessibilityRole="radio"
+              accessibilityState={{ selected: actif }}
+              style={{ flex: 1, alignItems: 'center' }}>
+              <View
+                style={{
+                  width: '100%',
+                  aspectRatio: 0.82,
+                  borderRadius: radius.md,
+                  borderWidth: actif ? 2 : 1,
+                  borderColor: actif ? t.colors.primary : t.colors.border,
+                  overflow: 'hidden',
+                  flexDirection: 'row',
+                }}>
+                {(c.valeur === 'systeme'
+                  ? ([apercus.aube, apercus.veillee] as const)
+                  : ([apercus[c.valeur]] as const)
+                ).map((a, i) => (
+                  <View
+                    key={i}
+                    style={{ flex: 1, backgroundColor: a.fond, padding: 7, justifyContent: 'flex-end' }}>
+                    <View
+                      style={{
+                        height: 5,
+                        borderRadius: 3,
+                        backgroundColor: a.trait,
+                        marginBottom: 4,
+                        width: '85%',
+                      }}
+                    />
+                    <View
+                      style={{ height: 5, borderRadius: 3, backgroundColor: a.faible, marginBottom: 4 }}
+                    />
+                    <View
+                      style={{
+                        height: 14,
+                        borderRadius: 4,
+                        backgroundColor: a.carte,
+                        borderWidth: 1,
+                        borderColor: a.bord,
+                      }}
+                    />
+                  </View>
+                ))}
+              </View>
+              <Text
+                style={{
+                  color: actif ? t.colors.primary : t.colors.textMuted,
+                  fontSize: fontSize.sm,
+                  fontWeight: actif ? '700' : '600',
+                  marginTop: spacing.sm,
+                }}>
+                {c.label}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </View>
+      <Text
+        style={{
+          color: t.colors.textFaint,
+          fontSize: fontSize.xs,
+          lineHeight: 17,
+          marginTop: spacing.md,
+        }}>
+        {valeur === 'systeme'
+          ? 'L’application suit le réglage de votre téléphone : claire le jour, sombre la nuit s’il est réglé ainsi.'
+          : valeur === 'aube'
+            ? 'Toujours clair, quel que soit le réglage du téléphone.'
+            : 'Toujours sombre, quel que soit le réglage du téléphone. Plus reposant pour lire le soir.'}
+      </Text>
+    </View>
+  );
+}
+
+/** Les vraies couleurs des deux thèmes, pour que l'aperçu ne mente pas. */
+const apercus = {
+  aube: { fond: '#FBF7F0', carte: '#FFFFFF', bord: '#E7DCCB', trait: '#241F2E', faible: '#C9BFB0' },
+  veillee: { fond: '#14132A', carte: '#1E1D3B', bord: '#333062', trait: '#F2EFE8', faible: '#4A4770' },
+} as const;
