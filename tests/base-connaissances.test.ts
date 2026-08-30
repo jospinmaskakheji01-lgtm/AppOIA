@@ -43,7 +43,12 @@ import {
   questionsB,
 } from '../src/data/oia-simplifiee';
 import { genreDuLivre } from '../src/data/genres';
-import { methodesEtude, progressionTravail } from '../src/data/methodes-etude';
+import {
+  famillesEtude,
+  methodesDeLaFamille,
+  methodesEtude,
+  progressionTravail,
+} from '../src/data/methodes-etude';
 import {
   PortionLecture,
   chapitresDuJour,
@@ -546,18 +551,60 @@ async function principal(): Promise<void> {
   // ————————————————————————————————————————————————————————————
 
   console.log('\nMéthodes d’étude biblique');
-  verifier('les six méthodes sont là', methodesEtude.length === 6, methodesEtude.length);
   verifier(
-    'chacune porte l’identifiant attendu',
+    'les quatre familles sont là, dans l’ordre A à D',
+    famillesEtude.map((f) => f.lettre).join('') === 'ABCD',
+    famillesEtude.map((f) => `${f.lettre} ${f.titre}`),
+  );
+  verifier(
+    'les huit méthodes portent l’identifiant attendu',
     methodesEtude.map((m) => m.id).join(',') ===
-      'personnages,thematique,mots,survol,analyse,contexte',
+      'personnages,thematique-ciblee,thematique-generale,qualites,mots,survol,analyse,contexte',
     methodesEtude.map((m) => m.id),
   );
   verifier(
-    'chaque méthode donne une marche à suivre d’au moins six étapes',
-    methodesEtude.every((m) => m.etapes.length >= 6),
-    methodesEtude.map((m) => `${m.id}: ${m.etapes.length}`),
+    'chaque famille contient les méthodes annoncées',
+    methodesDeLaFamille('personnages').length === 1 &&
+      methodesDeLaFamille('thematique').length === 3 &&
+      methodesDeLaFamille('mots').length === 1 &&
+      methodesDeLaFamille('livre').length === 3,
+    famillesEtude.map((f) => `${f.cle}: ${methodesDeLaFamille(f.cle).length}`),
   );
+  const orphelines = methodesEtude.filter(
+    (m) => !famillesEtude.some((f) => f.cle === m.famille),
+  );
+  verifier(
+    'aucune méthode ne pointe vers une famille inconnue',
+    orphelines.length === 0,
+    orphelines.map((m) => `${m.id} → ${m.famille}`),
+  );
+
+  // Les étapes doivent être celles de Warren, dans son ordre et à son compte.
+  const ETAPES_WARREN: Record<string, [number, number]> = {
+    // méthode : [nombre d'étapes, chapitre de l'ouvrage]
+    personnages: [10, 5],
+    'thematique-ciblee': [6, 4],
+    'thematique-generale': [6, 6],
+    qualites: [9, 3],
+    mots: [8, 7],
+    survol: [6, 9],
+    analyse: [6, 11],
+    contexte: [8, 8],
+  };
+  const ecarts = methodesEtude
+    .map((m) => {
+      const [etapes, chapitre] = ETAPES_WARREN[m.id] ?? [0, 0];
+      return m.etapes.length === etapes && m.chapitreWarren === chapitre
+        ? null
+        : `${m.id}: ${m.etapes.length} étapes / ch. ${m.chapitreWarren}, attendu ${etapes} / ch. ${chapitre}`;
+    })
+    .filter(Boolean);
+  verifier(
+    'chaque méthode a le compte d’étapes de Warren et cite son chapitre',
+    ecarts.length === 0,
+    ecarts,
+  );
+
   const etapesIncompletes = methodesEtude.flatMap((m) =>
     m.etapes
       .filter((e) => !e.titre.trim() || !e.consigne.trim() || e.questions.length === 0)
@@ -586,9 +633,20 @@ async function principal(): Promise<void> {
     sourcesInconnues.length === 0,
     sourcesInconnues,
   );
+  const warren = getSource('warren-methodes-etude');
   verifier(
-    'chaque méthode renvoie à au moins un ouvrage',
-    methodesEtude.every((m) => m.pourAllerPlusLoin.length > 0),
+    'l’ouvrage de Rick Warren est enregistré comme source',
+    Boolean(warren) && warren?.auteur === 'Rick Warren',
+    warren?.titre,
+  );
+  verifier(
+    'chaque méthode renvoie au chapitre de Warren qui l’expose',
+    methodesEtude.every((m) =>
+      m.pourAllerPlusLoin.some((r) => r.sourceId === 'warren-methodes-etude'),
+    ),
+    methodesEtude
+      .filter((m) => !m.pourAllerPlusLoin.some((r) => r.sourceId === 'warren-methodes-etude'))
+      .map((m) => m.id),
   );
   verifier(
     'chaque méthode dit quand l’utiliser et sur quoi elle porte',

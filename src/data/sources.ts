@@ -17,6 +17,7 @@ export const SOURCE_REDACTION = 'lumiere-redaction';
 export const SOURCE_METHODE_OIA = 'methode-oia';
 export const SOURCE_OIA_GENERALE = 'ecole-apollos-oia-generale';
 export const SOURCE_OIA_SIMPLIFIEE = 'ecole-apollos-oia-simplifiee';
+export const SOURCE_WARREN = 'warren-methodes-etude';
 
 export const sources: Source[] = [
   {
@@ -82,6 +83,19 @@ export const sources: Source[] = [
     documentOrigine: 'MEDITATION OIA SIMPLIFIEE.pdf',
     abreviation: 'OIA simpl.',
     ajouteLe: '2026-08-29',
+  },
+  {
+    id: SOURCE_WARREN,
+    titre: `Méthodes d'étude de la Bible`,
+    auteur: 'Rick Warren',
+    editeur: 'La Maison de la Bible',
+    annee: '2010',
+    langue: 'fr',
+    type: 'etude',
+    noteProvenance: `Édition française de « Rick Warren's Bible Study Methods » (Zondervan, 1981 et 2006), traduite par Robert Youdi. L'ouvrage expose douze méthodes d'étude personnelle ; huit d'entre elles sont reprises dans l'application. C'est également la source des quatre caractéristiques de l'application — personnelle, pratique, réalisable et mesurable — que le document O.I.A de l'École d'Apollos cite déjà.`,
+    documentOrigine: 'Rick Warren. Méthodes d étude de la Bible.pdf',
+    abreviation: 'Warren',
+    ajouteLe: '2026-08-30',
   },
 ];
 

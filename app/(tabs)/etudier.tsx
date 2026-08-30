@@ -16,7 +16,7 @@ import {
 import { progressionTemps } from '../../src/data/oia';
 import { progressionSimplifiee } from '../../src/data/oia-simplifiee';
 import { plans } from '../../src/data/plans';
-import { methodesEtude } from '../../src/data/methodes-etude';
+import { famillesEtude, methodesEtude } from '../../src/data/methodes-etude';
 import { chapitresDuJour, formaterPortions, plansLecture } from '../../src/data/plans-lecture';
 import { EtudeOIA, useApp } from '../../src/store/AppContext';
 import { fontSize, radius, spacing } from '../../src/theme/theme';
@@ -112,17 +112,17 @@ export default function Etudier() {
           </View>
           <View style={{ flex: 1 }}>
             <Text style={{ color: t.colors.text, fontSize: fontSize.md, fontWeight: '700' }}>
-              Six méthodes d’étude biblique
+              {methodesEtude.length} méthodes d’étude biblique
             </Text>
             <SousTitre style={{ marginTop: 1 }}>
-              Personnages, thèmes, mots, survol, analyse, contexte — la marche à suivre
+              Personnages, thèmes, qualités, mots, livres — la marche à suivre
             </SousTitre>
           </View>
         </View>
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginTop: spacing.md }}>
-          {methodesEtude.map((m) => (
+          {famillesEtude.map((f) => (
             <View
-              key={m.id}
+              key={f.cle}
               style={{
                 backgroundColor: t.colors.surfaceAlt,
                 borderRadius: radius.pill,
@@ -130,7 +130,7 @@ export default function Etudier() {
                 paddingHorizontal: spacing.md,
               }}>
               <Text style={{ color: t.colors.textMuted, fontSize: fontSize.xs, fontWeight: '600' }}>
-                {m.symbole} {m.titre.replace('Étude de ', '').replace('Étude ', '').replace('Le survol des ', 'Survol des ')}
+                {f.lettre} · {f.titre}
               </Text>
             </View>
           ))}

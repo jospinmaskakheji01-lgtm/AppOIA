@@ -156,8 +156,10 @@ export default function DetailMethode() {
 
         <Separateur label="Pour aller plus loin" />
         <SousTitre style={{ marginBottom: spacing.md }}>
-          Cette marche à suivre est écrite pour l’application. Les ouvrages ci-dessous,
-          installés dans votre base, traitent la méthode en détail.
+          Les étapes de cette méthode sont celles de Rick Warren, qui l’expose au chapitre{' '}
+          {methode.chapitreWarren} de ses{' '}
+          <Text style={{ fontStyle: 'italic' }}>Méthodes d’étude de la Bible</Text>. Les
+          consignes et les questions qui les accompagnent sont écrites pour l’application.
         </SousTitre>
         {methode.pourAllerPlusLoin.map((r) => {
           const source = getSource(r.sourceId);

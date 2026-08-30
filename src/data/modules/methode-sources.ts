@@ -13,6 +13,7 @@
  */
 
 import { ConseilMethode, ModuleConnaissance, Source } from '../../knowledge/types';
+import { SOURCE_WARREN, sourcesParId } from '../sources';
 
 export const SOURCE_HENDRICKS = 'living-by-the-book';
 export const SOURCE_FEE_STUART = 'how-to-read-the-bible';
@@ -403,6 +404,10 @@ export const moduleMethodeSources: ModuleConnaissance = {
   id: 'methode-sources-v1',
   // Hendricks est la source principale : la méthode elle-même vient de lui.
   source: sourceHendricks,
-  sourcesAnnexes: [sourceFeeStuart, sourceKuenEtudier, sourceKuenLire],
+  // Warren ne fournit aucun conseil sur les trois temps de l'OIA : il fournit
+  // les huit méthodes d'étude de `methodes-etude.ts`, qui le citent. Sa fiche
+  // passe par ici parce que c'est le module des ouvrages de méthode, et qu'une
+  // source n'entre au registre que par un module.
+  sourcesAnnexes: [sourceFeeStuart, sourceKuenEtudier, sourceKuenLire, sourcesParId[SOURCE_WARREN]],
   conseils: [...observation, ...interpretation, ...parGenre, ...application],
 };

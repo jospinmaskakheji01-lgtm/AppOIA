@@ -3,17 +3,24 @@ import React from 'react';
 import { ScrollView, Text, View } from 'react-native';
 
 import { Carte, Etiquette, Separateur, SousTitre, Titre } from '../../src/components/ui';
-import { getMethodeEtude, methodesEtude, progressionTravail } from '../../src/data/methodes-etude';
+import {
+  famillesEtude,
+  getMethodeEtude,
+  methodesDeLaFamille,
+  methodesEtude,
+  progressionTravail,
+} from '../../src/data/methodes-etude';
 import { useApp } from '../../src/store/AppContext';
 import { fontSize, radius, spacing } from '../../src/theme/theme';
 import { dateCourte } from '../../src/utils/dates';
 
 /**
- * Les six méthodes d'étude biblique.
+ * Les méthodes d'étude biblique, groupées en quatre familles.
  *
  * L'écran répond à une question précise : « je veux faire une étude biblique et
- * je ne sais pas comment m'y prendre ». Chaque carte dit donc d'abord quand
- * choisir cette méthode-là, avant de dire ce qu'elle est.
+ * je ne sais pas comment m'y prendre ». On choisit donc d'abord l'objet — une
+ * personne, un thème, un mot, un livre — puis la méthode ; et chaque carte dit
+ * quand l'employer avant de dire ce qu'elle est.
  */
 export default function MethodesEtude() {
   const { theme: t, etat } = useApp();
@@ -27,12 +34,12 @@ export default function MethodesEtude() {
       style={{ flex: 1, backgroundColor: t.colors.background }}
       contentContainerStyle={{ padding: spacing.lg, paddingBottom: spacing.xxxl * 2 }}
       showsVerticalScrollIndicator={false}>
-      <Etiquette>Six manières d’étudier</Etiquette>
+      <Etiquette>Quatre familles · {methodesEtude.length} méthodes</Etiquette>
       <Titre style={{ marginTop: spacing.sm }}>Méthodes d’étude biblique</Titre>
       <SousTitre style={{ marginTop: spacing.sm }}>
-        La méthode OIA étudie un passage. Ces six-là étudient autre chose : une personne,
-        un thème, un mot, un livre entier, ou le contexte d’un texte. Chacune donne sa
-        marche à suivre, étape par étape.
+        La méthode OIA étudie un passage. Celles-ci étudient autre chose : une personne, un
+        thème, une qualité, un mot, un livre entier. Choisissez d’abord ce que vous voulez
+        étudier, ensuite comment — chaque méthode donne sa marche à suivre, étape par étape.
       </SousTitre>
 
       {enCours.length > 0 ? (
@@ -44,50 +51,104 @@ export default function MethodesEtude() {
         </>
       ) : null}
 
-      <Separateur label="Choisir une méthode" />
-
-      {methodesEtude.map((m) => (
-        <Carte
-          key={m.id}
-          style={{ marginBottom: spacing.md }}
-          onPress={() => router.push(`/etude/${m.id}`)}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
-            <View
-              style={{
-                width: 46,
-                height: 46,
-                borderRadius: radius.md,
-                backgroundColor: t.colors.primarySoft,
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}>
-              <Text style={{ color: t.colors.primary, fontSize: 20 }}>{m.symbole}</Text>
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text style={{ color: t.colors.text, fontSize: fontSize.lg, fontWeight: '700' }}>
-                {m.titre}
+      {famillesEtude.map((famille) => {
+        const methodes = methodesDeLaFamille(famille.cle);
+        return (
+          <View key={famille.cle} style={{ marginTop: spacing.xxl }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
+              <View
+                style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: radius.sm,
+                  backgroundColor: t.colors.primary,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}>
+                <Text
+                  style={{ color: t.colors.onPrimary, fontWeight: '800', fontSize: fontSize.md }}>
+                  {famille.lettre}
+                </Text>
+              </View>
+              <Text
+                style={{
+                  color: t.colors.text,
+                  fontSize: fontSize.xl,
+                  fontWeight: '700',
+                  flex: 1,
+                }}>
+                {famille.titre}
               </Text>
-              <SousTitre style={{ marginTop: 2 }}>{m.sousTitre}</SousTitre>
             </View>
-          </View>
+            <Text
+              style={{
+                color: t.colors.textMuted,
+                fontSize: fontSize.md,
+                lineHeight: 23,
+                marginTop: spacing.sm,
+                marginBottom: spacing.lg,
+              }}>
+              {famille.description}
+            </Text>
 
-          <Text
-            style={{
-              color: t.colors.textMuted,
-              fontSize: fontSize.md,
-              lineHeight: 23,
-              marginTop: spacing.md,
-            }}>
-            <Text style={{ color: t.colors.text, fontWeight: '700' }}>Quand l’utiliser — </Text>
-            {m.quand}
-          </Text>
+            {methodes.map((m) => (
+              <Carte
+                key={m.id}
+                style={{ marginBottom: spacing.md }}
+                onPress={() => router.push(`/etude/${m.id}`)}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
+                  <View
+                    style={{
+                      width: 46,
+                      height: 46,
+                      borderRadius: radius.md,
+                      backgroundColor: t.colors.primarySoft,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}>
+                    <Text style={{ color: t.colors.primary, fontSize: 20 }}>{m.symbole}</Text>
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={{ color: t.colors.text, fontSize: fontSize.lg, fontWeight: '700' }}>
+                      {m.titre}
+                    </Text>
+                    <SousTitre style={{ marginTop: 2 }}>{m.sousTitre}</SousTitre>
+                  </View>
+                </View>
 
-          <View style={{ flexDirection: 'row', gap: spacing.sm, marginTop: spacing.md }}>
-            <Badge texte={`${m.etapes.length} étapes`} />
-            <Badge texte={m.duree} />
+                <Text
+                  style={{
+                    color: t.colors.textMuted,
+                    fontSize: fontSize.md,
+                    lineHeight: 23,
+                    marginTop: spacing.md,
+                  }}>
+                  <Text style={{ color: t.colors.text, fontWeight: '700' }}>
+                    Quand l’utiliser —{' '}
+                  </Text>
+                  {m.quand}
+                </Text>
+
+                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginTop: spacing.md }}>
+                  <Badge texte={`${m.etapes.length} étapes`} />
+                  <Badge texte={m.duree} />
+                </View>
+              </Carte>
+            ))}
           </View>
-        </Carte>
-      ))}
+        );
+      })}
+
+      <Separateur label="D’où viennent ces méthodes" />
+      <Carte>
+        <Text style={{ color: t.colors.textMuted, fontSize: fontSize.md, lineHeight: 23 }}>
+          La suite des étapes de chaque méthode est celle de Rick Warren,{' '}
+          <Text style={{ fontStyle: 'italic' }}>Méthodes d’étude de la Bible</Text> (La Maison
+          de la Bible, 2010), qui en expose douze ; huit sont reprises ici. C’est le même
+          auteur dont le document O.I.A de l’École d’Apollos retient les quatre
+          caractéristiques de l’application — personnelle, pratique, réalisable et mesurable.
+        </Text>
+      </Carte>
 
       {terminees.length > 0 ? (
         <>
