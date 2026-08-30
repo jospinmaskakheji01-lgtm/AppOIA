@@ -274,32 +274,60 @@ Il faut le JDK 17 ou plus, et le SDK Android (`platform-tools`, `platforms;andro
 ```bash
 export ANDROID_HOME=/chemin/vers/android-sdk
 npx expo prebuild --platform android     # génère android/, ignoré par git
-cd android && ./gradlew assembleRelease
+cd android && ./gradlew assembleRelease -PreactNativeArchitectures=armeabi-v7a,arm64-v8a
 ```
 
 L'APK sort dans `android/app/build/outputs/apk/release/`. Le premier build télécharge
 tout l'outillage Gradle et compile les modules natifs : comptez une quinzaine de minutes,
 puis une poignée ensuite.
 
-Par défaut le fichier embarque les bibliothèques natives des quatre architectures, dont
-trois quarts sont inutiles sur un appareil donné — d'où un APK d'environ 123 Mo. Pour
-obtenir un fichier par architecture, ajoutez à `android/app/build.gradle`, dans le bloc
-`android` :
+Sans le `-PreactNativeArchitectures`, le fichier embarque les bibliothèques natives des
+quatre architectures — dont `x86` et `x86_64`, qui ne servent qu'aux émulateurs et pèsent
+à elles seules 44 Mo. Les deux architectures ARM couvrent tous les téléphones : `arm64-v8a`
+ceux vendus depuis 2017 environ, `armeabi-v7a` les plus anciens, en 32 bits. Un seul
+fichier de 88 Mo suffit donc, et il passe sous la limite des 100 Mo de GitHub.
+
+`prebuild` régénère `android/` : ce qu'on y a ajouté à la main est à remettre ensuite.
+
+### Signer l'APK
+
+Les mises à jour ne s'installent par-dessus la version précédente que si la clé est la
+même — sinon Android refuse, et les écrits de l'utilisateur sont perdus à la
+désinstallation. **La clé (`lumiere.keystore`) et son mot de passe sont hors du dépôt et
+doivent être sauvegardés ailleurs : les perdre, c'est ne plus jamais pouvoir mettre à jour
+une application déjà installée.**
+
+Après `prebuild`, ajouter à `android/app/build.gradle` un `signingConfig` de publication,
+dans le bloc `signingConfigs` :
 
 ```gradle
-splits {
-    abi {
-        enable true
-        reset()
-        include 'arm64-v8a', 'armeabi-v7a'
-        universalApk true
+release {
+    if (project.hasProperty('LUMIERE_STORE_FILE')) {
+        storeFile file(LUMIERE_STORE_FILE)
+        storePassword LUMIERE_STORE_PASSWORD
+        keyAlias LUMIERE_KEY_ALIAS
+        keyPassword LUMIERE_KEY_PASSWORD
     }
 }
 ```
 
-`arm64-v8a` (73 Mo) couvre les appareils vendus depuis 2017 environ ; `armeabi-v7a`
-(67 Mo) les plus anciens, en 32 bits. Ce bloc est à remettre après chaque `prebuild`,
-qui régénère `android/`.
+puis, dans `buildTypes.release`, remplacer `signingConfig signingConfigs.debug` par :
+
+```gradle
+signingConfig project.hasProperty('LUMIERE_STORE_FILE') ? signingConfigs.release : signingConfigs.debug
+```
+
+Les quatre valeurs vont dans `android/gradle.properties`, qui n'est pas dans le dépôt.
+On les met là plutôt que sur la ligne de commande : un mot de passe passé en argument se
+retrouve dans l'historique du shell et dans la liste des processus.
+
+Vérifier ensuite que le certificat est bien le même que celui de la version précédente :
+
+```bash
+$ANDROID_HOME/build-tools/36.0.0/apksigner verify --print-certs --verbose <fichier>.apk
+```
+
+L'empreinte SHA-256 du certificat annoncée dans `apk/README.md` doit correspondre.
 
 Si une compilation native échoue juste après un changement de dépendance, les répertoires
 `.cxx` et `build` de `node_modules/*/android/` gardent la configuration CMake de l'ancienne
