@@ -1,62 +1,78 @@
 import { useRouter } from 'expo-router';
-import React, { useMemo } from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import React, { useMemo, useState } from 'react';
+import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { IconeFlamme, IconePersonne } from '../../src/components/icons';
+import { Carte, Etiquette, Puce, Separateur, SousTitre, Titre } from '../../src/components/ui';
 import {
-  Carte,
-  CarteVerset,
-  Etiquette,
-  Separateur,
-  SousTitre,
-  Statistique,
-  Titre,
-} from '../../src/components/ui';
-import { seances } from '../../src/data/meditations';
-import { plans } from '../../src/data/plans';
-import { progressionTemps } from '../../src/data/oia';
-import { versetDuJour } from '../../src/data/versets';
-import { EtudeOIA, useApp } from '../../src/store/AppContext';
+  chapitresDuLivre,
+  livresCanoniques,
+  livresDeLaVersion,
+  normaliser,
+  statistiquesVersion,
+  versionsDisponibles,
+} from '../../src/knowledge';
+import { useApp } from '../../src/store/AppContext';
 import { fontSize, radius, spacing } from '../../src/theme/theme';
-import { cleJour, dateLongue, salutation } from '../../src/utils/dates';
+import { nombre } from '../../src/utils/nombres';
 
-export default function Aujourdhui() {
-  const { etat, theme: t, serie } = useApp();
+/**
+ * L'écran d'ouverture : la Bible.
+ *
+ * C'est le premier écran de l'application, et c'est voulu — on ouvre une
+ * application biblique pour lire la Bible, pas pour consulter un tableau de
+ * bord. Choisir une version, choisir un livre, lire ; et quand une lecture est
+ * en cours, elle passe avant tout le reste.
+ *
+ * Les corpus sont séparés parce qu'ils n'ont pas le même statut : les livres
+ * deutérocanoniques ne sont pas reçus par toutes les Églises, et les présenter
+ * dans une seule liste continue trancherait une question qui n'appartient pas à
+ * l'application.
+ */
+const CORPUS = [
+  { cle: 'ancien', titre: 'Ancien Testament' },
+  { cle: 'deuterocanonique', titre: 'Livres deutérocanoniques' },
+  { cle: 'nouveau', titre: 'Nouveau Testament' },
+] as const;
+
+export default function Bible() {
+  const { theme: t, etat, majReglages } = useApp();
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const [recherche, setRecherche] = useState('');
 
-  const verset = useMemo(() => versetDuJour(), []);
-  const jourFait = etat.joursTermines.includes(cleJour());
+  const versions = useMemo(() => versionsDisponibles(), []);
+  const versionActive =
+    versions.find((v) => v.id === etat.reglages.versionPreferee) ?? versions[0];
 
-  /** Reprend le plan commencé le plus récemment, sinon propose le plan d'entrée. */
-  const enCours = useMemo(() => {
-    const progressions = Object.values(etat.progressions);
-    if (progressions.length === 0) return null;
-    const derniere = progressions.sort((a, b) =>
-      (b.dernierJour ?? b.commence).localeCompare(a.dernierJour ?? a.commence),
-    )[0];
-    const plan = plans.find((p) => p.id === derniere.planId);
-    if (!plan) return null;
-    const prochain =
-      plan.jours.find((j) => !derniere.joursTermines.includes(j.jour)) ?? null;
-    return { plan, progression: derniere, prochain };
-  }, [etat.progressions]);
-
-  const etudeOuverte = useMemo(
-    () =>
-      etat.etudes
-        .filter((e) => !e.terminee)
-        .sort((a, b) => b.modifie.localeCompare(a.modifie))[0],
-    [etat.etudes],
+  /** Les livres que cette version contient réellement, et rien d'autre. */
+  const disponibles = useMemo(
+    () => new Set(livresDeLaVersion(versionActive?.id ?? '')),
+    [versionActive?.id],
   );
 
-  const seanceSuggeree = useMemo(() => {
-    const h = new Date().getHours();
-    if (h >= 20 || h < 5) return seances.find((s) => s.ambiance === 'soir')!;
-    if (h < 11) return seances.find((s) => s.ambiance === 'matin')!;
-    return seances.find((s) => s.ambiance === 'gratitude')!;
-  }, []);
+  const stats = useMemo(
+    () => (versionActive ? statistiquesVersion(versionActive.id) : undefined),
+    [versionActive?.id],
+  );
+
+  const q = normaliser(recherche.trim());
+  const parCorpus = useMemo(
+    () =>
+      CORPUS.map((corpus) => ({
+        ...corpus,
+        livres: livresCanoniques
+          .filter((l) => l.testament === corpus.cle)
+          .filter((l) => disponibles.has(l.nom))
+          .filter(
+            (l) => !q || normaliser(l.nom).includes(q) || normaliser(l.abreviation).includes(q),
+          ),
+      })).filter((c) => c.livres.length > 0),
+    [disponibles, q],
+  );
+
+  const reprise = etat.reglages.derniereLecture;
+  const repriseLisible = reprise && disponibles.has(reprise.livre) ? reprise : undefined;
 
   return (
     <ScrollView
@@ -66,295 +82,150 @@ export default function Aujourdhui() {
         paddingTop: insets.top + spacing.md,
         paddingBottom: spacing.xxxl * 2,
       }}
+      keyboardShouldPersistTaps="handled"
       showsVerticalScrollIndicator={false}>
-      <View
-        style={{
-          flexDirection: 'row',
-          justifyContent: 'space-between',
-          alignItems: 'flex-start',
-          marginBottom: spacing.xl,
-        }}>
-        <View style={{ flex: 1 }}>
-          <Etiquette>{dateLongue()}</Etiquette>
-          <Titre style={{ marginTop: spacing.sm }}>
-            {salutation()}
-            {etat.reglages.prenom ? `, ${etat.reglages.prenom}` : ''}
-          </Titre>
-        </View>
+      <Etiquette>{versions.length} versions hors connexion</Etiquette>
+      <Titre style={{ marginTop: spacing.sm }}>Lire la Bible</Titre>
+
+      {repriseLisible ? (
         <Pressable
-          onPress={() => router.push('/reglages')}
-          style={({ pressed }) => ({
-            padding: spacing.sm,
-            opacity: pressed ? 0.6 : 1,
-          })}>
-          <IconePersonne couleur={t.colors.textMuted} taille={26} />
-        </Pressable>
-      </View>
-
-      <CarteVerset
-        etiquette={`Verset du jour · ${verset.theme}`}
-        reference={verset.ref}
-        texte={verset.texte}
-        onPress={verset.passageId ? () => router.push(`/passage/${verset.passageId}`) : undefined}
-      />
-
-      <Carte style={{ marginTop: spacing.md }} accent>
-        <Etiquette>Pour méditer</Etiquette>
-        <Text
-          style={{
-            color: t.colors.text,
-            fontSize: fontSize.lg,
-            lineHeight: 26,
-            marginTop: spacing.sm,
-          }}>
-          {verset.meditation}
-        </Text>
-      </Carte>
-
-      <View
-        style={{
-          flexDirection: 'row',
-          backgroundColor: t.colors.surface,
-          borderRadius: radius.lg,
-          paddingVertical: spacing.lg,
-          marginTop: spacing.lg,
-          borderWidth: 1,
-          borderColor: t.colors.border,
-        }}>
-        <Statistique valeur={serie} label={serie > 1 ? 'jours de suite' : 'jour de suite'} />
-        <Statistique valeur={etat.joursTermines.length} label="jours vécus" />
-        <Statistique valeur={etat.minutesMeditation} label="minutes de silence" />
-      </View>
-
-      {serie >= 3 ? (
-        <View
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            marginTop: spacing.md,
-            gap: spacing.sm,
-          }}>
-          <IconeFlamme couleur={t.colors.accent} taille={18} />
-          <Text style={{ color: t.colors.accent, fontSize: fontSize.sm, fontWeight: '600' }}>
-            {serie} jours consécutifs — la fidélité se construit un jour à la fois.
-          </Text>
-        </View>
-      ) : null}
-
-      <Separateur label="Votre temps aujourd’hui" />
-
-      {etudeOuverte ? (
-        <Carte onPress={() => router.push(`/oia/${etudeOuverte.id}`)}>
-          <Etiquette>Reprendre mon étude OIA</Etiquette>
-          <Text
-            style={{
-              color: t.colors.text,
-              fontSize: fontSize.xl,
-              fontWeight: '700',
-              marginTop: spacing.sm,
-            }}>
-            {etudeOuverte.reference}
-          </Text>
-          <SousTitre style={{ marginTop: spacing.xs }}>
-            {etapeEnCours(etudeOuverte)}
-          </SousTitre>
-        </Carte>
-      ) : null}
-
-      {enCours && enCours.prochain ? (
-        <Carte
           onPress={() =>
-            router.push(`/plan/${enCours.plan.id}/jour/${enCours.prochain!.jour}`)
-          }>
-          <Etiquette>Reprendre · {enCours.plan.titre}</Etiquette>
-          <Text
-            style={{
-              color: t.colors.text,
-              fontSize: fontSize.xl,
-              fontWeight: '700',
-              marginTop: spacing.sm,
-            }}>
-            Jour {enCours.prochain.jour} — {enCours.prochain.titre}
-          </Text>
-          <SousTitre style={{ marginTop: spacing.xs }}>
-            {enCours.progression.joursTermines.length} / {enCours.plan.jours.length} jours
-            terminés
-          </SousTitre>
-          <BarreProgression
-            valeur={enCours.progression.joursTermines.length / enCours.plan.jours.length}
-          />
-        </Carte>
-      ) : (
-        <Carte
-          style={{ marginTop: etudeOuverte ? spacing.md : 0 }}
-          onPress={() => router.push('/(tabs)/etudier')}>
-          <Etiquette>Commencer un plan guidé</Etiquette>
-          <Text
-            style={{
-              color: t.colors.text,
-              fontSize: fontSize.xl,
-              fontWeight: '700',
-              marginTop: spacing.sm,
-            }}>
-            {plans[0].titre}
-          </Text>
-          <SousTitre style={{ marginTop: spacing.xs }}>{plans[0].sousTitre}</SousTitre>
-        </Carte>
-      )}
-
-      <Carte
-        style={{ marginTop: spacing.md }}
-        onPress={() => router.push('/oia/nouvelle?methode=simplifiee')}>
-        <Etiquette>Méditation du jour</Etiquette>
-        <Text
+            router.push(
+              `/lire/${encodeURIComponent(repriseLisible.livre)}/${repriseLisible.chapitre}`,
+            )
+          }
           style={{
-            color: t.colors.text,
-            fontSize: fontSize.xl,
-            fontWeight: '700',
-            marginTop: spacing.sm,
-          }}>
-          Méditer un passage avec l’OIA simplifiée
-        </Text>
-        <SousTitre style={{ marginTop: spacing.xs }}>
-          Méditez, priez, obéissez — 5 à 15 minutes devant la Parole
-        </SousTitre>
-      </Carte>
-
-      <Carte
-        style={{ marginTop: spacing.md }}
-        onPress={() => router.push('/oia/nouvelle?methode=generale')}>
-        <Etiquette>Étude libre</Etiquette>
-        <Text
-          style={{
-            color: t.colors.text,
-            fontSize: fontSize.xl,
-            fontWeight: '700',
-            marginTop: spacing.sm,
-          }}>
-          Étudier un passage avec la méthode OIA
-        </Text>
-        <SousTitre style={{ marginTop: spacing.xs }}>
-          Observer, interpréter, appliquer — sur le texte de votre choix
-        </SousTitre>
-      </Carte>
-
-      <Carte
-        style={{ marginTop: spacing.md }}
-        onPress={() => router.push(`/meditation/${seanceSuggeree.id}`)}>
-        <Etiquette>Méditation guidée</Etiquette>
-        <Text
-          style={{
-            color: t.colors.text,
-            fontSize: fontSize.xl,
-            fontWeight: '700',
-            marginTop: spacing.sm,
-          }}>
-          {seanceSuggeree.titre}
-        </Text>
-        <SousTitre style={{ marginTop: spacing.xs }}>
-          {seanceSuggeree.sousTitre} · {Math.round(seanceSuggeree.duree / 60)} min
-        </SousTitre>
-      </Carte>
-
-      <Carte style={{ marginTop: spacing.md }} onPress={() => router.push('/recherche')}>
-        <Etiquette>Base de connaissances</Etiquette>
-        <Text
-          style={{
-            color: t.colors.text,
-            fontSize: fontSize.xl,
-            fontWeight: '700',
-            marginTop: spacing.sm,
-          }}>
-          Chercher un mot, un passage, une notion
-        </Text>
-        <SousTitre style={{ marginTop: spacing.xs }}>
-          Texte biblique, dictionnaire, commentaires et références croisées
-        </SousTitre>
-      </Carte>
-
-      <Carte
-        style={{ marginTop: spacing.md }}
-        onPress={() => router.push('/journal/nouvelle')}>
-        <Etiquette>Journal spirituel</Etiquette>
-        <Text
-          style={{
-            color: t.colors.text,
-            fontSize: fontSize.xl,
-            fontWeight: '700',
-            marginTop: spacing.sm,
-          }}>
-          Écrire ce que Dieu vous dit
-        </Text>
-        <SousTitre style={{ marginTop: spacing.xs }}>
-          {etat.journal.length > 0
-            ? `${etat.journal.length} entrée${etat.journal.length > 1 ? 's' : ''} enregistrée${etat.journal.length > 1 ? 's' : ''}`
-            : 'Votre première page vous attend'}
-        </SousTitre>
-      </Carte>
-
-      {!jourFait ? (
-        <Text
-          style={{
-            color: t.colors.textFaint,
-            fontSize: fontSize.sm,
-            textAlign: 'center',
-            marginTop: spacing.xl,
-            lineHeight: 20,
-          }}>
-          Une étude OIA achevée, une méditation ou une page de journal valide votre journée.
-        </Text>
-      ) : (
-        <View
-          style={{
-            marginTop: spacing.xl,
+            marginTop: spacing.lg,
             padding: spacing.lg,
             borderRadius: radius.lg,
-            backgroundColor: t.colors.accentSoft,
+            backgroundColor: t.colors.primary,
           }}>
           <Text
             style={{
-              color: t.colors.text,
-              textAlign: 'center',
-              fontSize: fontSize.md,
-              lineHeight: 22,
+              color: '#FFFFFF',
+              fontSize: fontSize.xs,
+              fontWeight: '800',
+              letterSpacing: 1,
             }}>
-            Vous avez pris ce temps aujourd’hui. « Il est bon d’attendre en silence le
-            secours de l’Éternel. »
+            REPRENDRE VOTRE LECTURE
           </Text>
-        </View>
-      )}
-    </ScrollView>
-  );
-}
+          <Text
+            style={{ color: '#FFFFFF', fontSize: fontSize.xxl, fontWeight: '700', marginTop: 4 }}>
+            {repriseLisible.livre} {repriseLisible.chapitre}
+          </Text>
+          <Text style={{ color: '#FFFFFFCC', fontSize: fontSize.sm, marginTop: 2 }}>
+            {versionActive?.nom}
+          </Text>
+        </Pressable>
+      ) : null}
 
-/** Le temps de la méthode où l'étude en est restée. */
-function etapeEnCours(etude: EtudeOIA): string {
-  if (progressionTemps(etude.observation, 'observation') < 1) return 'En cours — Observation';
-  if (progressionTemps(etude.interpretation, 'interpretation') < 1)
-    return 'En cours — Interprétation';
-  return 'En cours — Application';
-}
+      <Separateur label="Version de lecture" />
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm }}>
+        {versions.map((v) => (
+          <Puce
+            key={v.id}
+            texte={`${v.abreviation}${v.annee ? ` · ${v.annee}` : ''}`}
+            actif={v.id === versionActive?.id}
+            onPress={() => majReglages({ versionPreferee: v.id })}
+          />
+        ))}
+      </View>
+      {versionActive ? (
+        <SousTitre style={{ marginTop: spacing.md }}>
+          {versionActive.nom} — {nombre(stats?.versets)} versets sur {nombre(stats?.livres)}{' '}
+          livre{(stats?.livres ?? 0) > 1 ? 's' : ''}.
+        </SousTitre>
+      ) : null}
 
-export function BarreProgression({ valeur }: { valeur: number }) {
-  const { theme: t } = useApp();
-  const pct = Math.max(0, Math.min(1, valeur));
-  return (
-    <View
-      style={{
-        height: 6,
-        borderRadius: 3,
-        backgroundColor: t.colors.surfaceAlt,
-        marginTop: spacing.md,
-        overflow: 'hidden',
-      }}>
-      <View
+      <Separateur label="Choisir un livre" />
+      <TextInput
+        value={recherche}
+        onChangeText={setRecherche}
+        placeholder="Chercher un livre…"
+        placeholderTextColor={t.colors.textFaint}
         style={{
-          width: `${pct * 100}%`,
-          height: '100%',
-          backgroundColor: t.colors.accent,
-          borderRadius: 3,
+          backgroundColor: t.colors.surface,
+          borderRadius: radius.md,
+          borderWidth: 1,
+          borderColor: t.colors.border,
+          paddingHorizontal: spacing.lg,
+          paddingVertical: spacing.md,
+          color: t.colors.text,
+          fontSize: fontSize.md,
+          marginBottom: spacing.lg,
         }}
       />
-    </View>
+
+      {parCorpus.map((corpus) => (
+        <View key={corpus.cle} style={{ marginBottom: spacing.xl }}>
+          <Etiquette>{corpus.titre}</Etiquette>
+          <View
+            style={{
+              flexDirection: 'row',
+              flexWrap: 'wrap',
+              gap: spacing.sm,
+              marginTop: spacing.md,
+            }}>
+            {corpus.livres.map((l) => {
+              const chapitres = chapitresDuLivre(versionActive?.id ?? '', l.nom);
+              return (
+                <Pressable
+                  key={l.nom}
+                  onPress={() =>
+                    router.push(`/lire/${encodeURIComponent(l.nom)}/${chapitres[0] ?? 1}`)
+                  }
+                  style={{
+                    backgroundColor: t.colors.surface,
+                    borderWidth: 1,
+                    borderColor: t.colors.border,
+                    borderRadius: radius.md,
+                    paddingVertical: spacing.md,
+                    paddingHorizontal: spacing.lg,
+                  }}>
+                  <Text style={{ color: t.colors.text, fontSize: fontSize.md, fontWeight: '600' }}>
+                    {l.nom}
+                  </Text>
+                  <Text style={{ color: t.colors.textFaint, fontSize: fontSize.xs, marginTop: 2 }}>
+                    {chapitres.length} chapitre{chapitres.length > 1 ? 's' : ''}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+        </View>
+      ))}
+
+      {parCorpus.length === 0 ? (
+        <SousTitre>Aucun livre ne correspond à « {recherche} » dans cette version.</SousTitre>
+      ) : null}
+
+      <Separateur label="Aussi dans la Bible" />
+      <View style={{ gap: spacing.sm }}>
+        <Carte onPress={() => router.push('/recherche')}>
+          <Text style={{ color: t.colors.text, fontSize: fontSize.md, fontWeight: '700' }}>
+            Rechercher un mot ou un verset
+          </Text>
+          <SousTitre style={{ marginTop: 2 }}>
+            Dans les versions installées et dans les ouvrages
+          </SousTitre>
+        </Carte>
+        <Carte onPress={() => router.push('/passages')}>
+          <Text style={{ color: t.colors.text, fontSize: fontSize.md, fontWeight: '700' }}>
+            Passages préparés
+          </Text>
+          <SousTitre style={{ marginTop: 2 }}>
+            Des textes accompagnés d’une fiche et de pistes d’observation
+          </SousTitre>
+        </Carte>
+        <Carte onPress={() => router.push('/assistant')}>
+          <Text style={{ color: t.colors.text, fontSize: fontSize.md, fontWeight: '700' }}>
+            Poser une question
+          </Text>
+          <SousTitre style={{ marginTop: 2 }}>
+            La réponse cite ses sources et ne les mélange pas
+          </SousTitre>
+        </Carte>
+      </View>
+    </ScrollView>
   );
 }

@@ -47,7 +47,7 @@ function Navigation() {
         <Stack.Screen name="oia/[id]" options={{ title: 'Étude OIA' }} />
         <Stack.Screen name="oia/nouvelle" options={{ title: 'Commencer', presentation: 'modal' }} />
         <Stack.Screen name="oia/methode" options={{ title: 'La méthode OIA' }} />
-        <Stack.Screen name="lire/index" options={{ title: 'Lire la Bible' }} />
+        <Stack.Screen name="passages" options={{ title: 'Passages préparés' }} />
         <Stack.Screen name="lire/[livre]/[chapitre]" options={{ title: 'Lecture' }} />
         <Stack.Screen name="recherche" options={{ title: 'Recherche' }} />
         <Stack.Screen name="assistant" options={{ title: 'Questions bibliques' }} />

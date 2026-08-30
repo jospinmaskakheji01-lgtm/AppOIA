@@ -89,7 +89,7 @@ export default function LireChapitre() {
         ref={defilement}
         contentContainerStyle={{ padding: spacing.lg, paddingBottom: spacing.xxxl * 3 }}
         showsVerticalScrollIndicator={false}>
-        <Pressable onPress={() => router.push('/lire')}>
+        <Pressable onPress={() => router.push('/(tabs)/')}>
           <Etiquette>{versionActive?.nom ?? 'Lecture'} · changer de livre</Etiquette>
         </Pressable>
         <Text

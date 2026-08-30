@@ -315,3 +315,28 @@ export function Statistique({ valeur, label }: { valeur: string | number; label:
     </View>
   );
 }
+
+/** Barre de progression d'un plan ou d'une étude. */
+export function BarreProgression({ valeur }: { valeur: number }) {
+  const t = useTheme();
+  const pct = Math.max(0, Math.min(1, valeur));
+  return (
+    <View
+      style={{
+        height: 6,
+        borderRadius: 3,
+        backgroundColor: t.colors.surfaceAlt,
+        marginTop: spacing.md,
+        overflow: 'hidden',
+      }}>
+      <View
+        style={{
+          width: `${pct * 100}%`,
+          height: '100%',
+          backgroundColor: t.colors.accent,
+          borderRadius: 3,
+        }}
+      />
+    </View>
+  );
+}

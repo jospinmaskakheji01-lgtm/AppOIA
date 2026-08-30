@@ -212,7 +212,7 @@ export default function Reglages() {
           teinte="violet"
           titre="Lire la Bible"
           valeur={versionActive?.abreviation}
-          onPress={() => router.push('/lire')}
+          onPress={() => router.push('/(tabs)/')}
         />
         <LigneReglage
           icone={IconeLoupe}

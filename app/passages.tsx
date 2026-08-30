@@ -3,7 +3,7 @@ import React, { useMemo, useState } from 'react';
 import { ScrollView, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { IconeCoeur } from '../../src/components/icons';
+import { IconeCoeur } from '../src/components/icons';
 import {
   Bouton,
   Carte,
@@ -12,16 +12,16 @@ import {
   Separateur,
   SousTitre,
   Titre,
-} from '../../src/components/ui';
-import { BIBLE_VERSION, passages, passagesById } from '../../src/data/passages';
-import { statistiquesBase, statistiquesVersion, versionsDisponibles } from '../../src/knowledge';
-import { useApp } from '../../src/store/AppContext';
-import { fontSize, radius, spacing } from '../../src/theme/theme';
-import { nombre } from '../../src/utils/nombres';
+} from '../src/components/ui';
+import { BIBLE_VERSION, passages, passagesById } from '../src/data/passages';
+import { statistiquesBase, statistiquesVersion, versionsDisponibles } from '../src/knowledge';
+import { useApp } from '../src/store/AppContext';
+import { fontSize, radius, spacing } from '../src/theme/theme';
+import { nombre } from '../src/utils/nombres';
 
 type Filtre = 'tous' | 'ancien' | 'nouveau' | 'favoris';
 
-export default function Bible() {
+export default function Passages() {
   const { theme: t, etat, majReglages } = useApp();
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -66,81 +66,12 @@ export default function Bible() {
       }}
       keyboardShouldPersistTaps="handled"
       showsVerticalScrollIndicator={false}>
-      <Etiquette>Bible et base de connaissances</Etiquette>
-      <Titre style={{ marginTop: spacing.sm }}>Bibliothèque</Titre>
+      <Etiquette>Un point de départ</Etiquette>
+      <Titre style={{ marginTop: spacing.sm }}>Passages préparés</Titre>
       <SousTitre style={{ marginTop: spacing.sm }}>
-        {versions.length} versions bibliques hors connexion, enrichies de{' '}
-        {nombre(base.entrees)} entrées de dictionnaire, {nombre(base.commentaires)} commentaires
-        et {nombre(base.referencesCroisees)} références croisées.
-      </SousTitre>
-
-      {/* Lire la Bible passe devant le reste : c'est ce qu'on vient y faire. */}
-      <Bouton
-        titre={
-          etat.reglages.derniereLecture
-            ? `Reprendre — ${etat.reglages.derniereLecture.livre} ${etat.reglages.derniereLecture.chapitre}`
-            : 'Lire la Bible'
-        }
-        onPress={() =>
-          router.push(
-            etat.reglages.derniereLecture
-              ? `/lire/${encodeURIComponent(etat.reglages.derniereLecture.livre)}/${etat.reglages.derniereLecture.chapitre}`
-              : '/lire',
-          )
-        }
-        style={{ marginTop: spacing.lg }}
-      />
-      <View style={{ flexDirection: 'row', gap: spacing.sm, marginTop: spacing.sm }}>
-        <Bouton
-          titre="Choisir un livre"
-          variante="secondaire"
-          onPress={() => router.push('/lire')}
-          style={{ flex: 1 }}
-        />
-        <Bouton
-          titre="Rechercher"
-          variante="secondaire"
-          onPress={() => router.push('/recherche')}
-          style={{ flex: 1 }}
-        />
-      </View>
-      <View style={{ flexDirection: 'row', gap: spacing.sm, marginTop: spacing.sm }}>
-        <Bouton
-          titre="Poser une question"
-          variante="secondaire"
-          onPress={() => router.push('/assistant')}
-          style={{ flex: 1 }}
-        />
-        <Bouton
-          titre="Sources"
-          variante="discret"
-          onPress={() => router.push('/sources')}
-          style={{ flex: 1 }}
-        />
-      </View>
-
-      <Separateur label="Version de lecture" />
-      <SousTitre style={{ marginBottom: spacing.md }}>
-        La version choisie ici est celle qui s'ouvre à la lecture et dans les études.
-      </SousTitre>
-
-      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm }}>
-        {versions.map((v) => (
-          <Puce
-            key={v.id}
-            texte={`${v.abreviation} · ${v.annee ?? ''}`.trim()}
-            actif={versionActive?.id === v.id}
-            onPress={() => majReglages({ versionPreferee: v.id })}
-          />
-        ))}
-      </View>
-      <SousTitre style={{ marginTop: spacing.md }}>
-        {versionActive
-          ? `${versionActive.nom} — ${nombre(statsVersion?.versets)} versets installés sur ${nombre(statsVersion?.livres)} livres${(statsVersion?.livres ?? 0) > 66 ? ', livres deutérocanoniques compris' : ''}.`
-          : 'Aucune version installée.'}
-        {versions.length === 1
-          ? ` Une seule version est installée : ajoutez-en une pour comparer les traductions.`
-          : ''}
+        {passages.length} textes accompagnés d’une fiche de livre, de pistes d’observation et
+        de commentaires — pour commencer une étude quand on ne sait pas par où. Le reste de la
+        Bible se lit dans l’onglet Bible.
       </SousTitre>
 
       <TextInput

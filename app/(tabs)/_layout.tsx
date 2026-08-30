@@ -11,6 +11,11 @@ import {
 } from '../../src/components/icons';
 import { useTheme } from '../../src/store/AppContext';
 
+/**
+ * L'onglet Bible est le premier, et c'est l'écran d'ouverture : on ouvre une
+ * application biblique pour lire la Bible. « Aujourd'hui » — le verset du jour,
+ * la série, les reprises — vient juste après.
+ */
 export default function TabsLayout() {
   const t = useTheme();
   return (
@@ -31,6 +36,13 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="index"
         options={{
+          title: 'Bible',
+          tabBarIcon: ({ color }) => <IconeLivre couleur={color} taille={24} />,
+        }}
+      />
+      <Tabs.Screen
+        name="aujourdhui"
+        options={{
           title: 'Aujourd’hui',
           tabBarIcon: ({ color }) => <IconeAube couleur={color} taille={24} />,
         }}
@@ -46,13 +58,6 @@ export default function TabsLayout() {
         name="etudier"
         options={{
           title: 'Étudier',
-          tabBarIcon: ({ color }) => <IconeLivre couleur={color} taille={24} />,
-        }}
-      />
-      <Tabs.Screen
-        name="bible"
-        options={{
-          title: 'Bible',
           tabBarIcon: ({ color }) => <IconeCroix couleur={color} taille={24} />,
         }}
       />

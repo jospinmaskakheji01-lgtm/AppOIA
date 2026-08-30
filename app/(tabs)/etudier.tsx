@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { IconeCoche } from '../../src/components/icons';
 import {
+  BarreProgression,
   Bouton,
   Carte,
   Etiquette,
@@ -21,7 +22,7 @@ import { chapitresDuJour, formaterPortions, plansLecture } from '../../src/data/
 import { EtudeOIA, useApp } from '../../src/store/AppContext';
 import { fontSize, radius, spacing } from '../../src/theme/theme';
 import { dateCourte } from '../../src/utils/dates';
-import { BarreProgression } from './index';
+
 
 type Onglet = 'etudes' | 'plans' | 'lecture';
 
