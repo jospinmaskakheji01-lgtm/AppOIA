@@ -1005,6 +1005,56 @@ async function principal(): Promise<void> {
     extraireReferences('Voir Cantique des cantiques 2 et 1 Corinthiens 13').map(formaterReference),
   );
 
+  // La concordance ne connaît aucun personnage en particulier : elle cherche
+  // le sujet saisi. On le vérifie sur un large échantillon, parce que ce sont
+  // les noms des livres numérotés — « 2 Corinthiens 2, 2 Corinthiens 7 » — qui
+  // faisaient inventer un faux verset au moment de relire la liste.
+  console.log('\nLe relevé tient pour tous les personnages');
+  const personnages = [
+    'Abraham', 'Sara', 'Isaac', 'Jacob', 'Joseph', 'Moïse', 'Aaron', 'Josué', 'Rahab',
+    'Gédéon', 'Samson', 'Ruth', 'Samuel', 'Saül', 'David', 'Salomon', 'Élie', 'Élisée',
+    'Ézéchias', 'Josias', 'Ésaïe', 'Jérémie', 'Ézéchiel', 'Daniel', 'Osée', 'Jonas',
+    'Néhémie', 'Esdras', 'Esther', 'Job', 'Marie', 'Jean', 'Pierre', 'André', 'Jacques',
+    'Thomas', 'Matthieu', 'Judas', 'Étienne', 'Philippe', 'Barnabas', 'Paul', 'Silas',
+    'Timothée', 'Tite', 'Priscille', 'Aquilas', 'Apollos', 'Lydie', 'Corneille',
+    'Ananias', 'Onésime', 'Philémon', 'Marc', 'Luc', 'Démas', 'Lazare', 'Marthe',
+    'Nicodème',
+  ];
+  const releves = segond
+    ? personnages.map((nom) => {
+        const releve = concordance(nom, segond.id);
+        const ecrit = releve ? passagesDuReleve(releve).map(formaterReference).join(', ') : '';
+        return {
+          nom,
+          total: releve?.total ?? 0,
+          fidele: extraireReferences(ecrit).map(formaterReference).join(', ') === ecrit,
+        };
+      })
+    : [];
+  verifier(
+    'chacun est trouvé dans le texte biblique',
+    releves.length === personnages.length && releves.every((r) => r.total > 0),
+    releves.filter((r) => r.total === 0).map((r) => r.nom),
+  );
+  verifier(
+    'la liste écrite se relit à l’identique pour chacun',
+    releves.every((r) => r.fidele),
+    releves.filter((r) => !r.fidele).map((r) => r.nom),
+  );
+  // Un livre numéroté ne doit ni perdre son chiffre ni le céder au voisin.
+  const listeNumerotee = '2 Corinthiens 2, 2 Corinthiens 7, 1 Rois 17, 2 Timothée 4:10';
+  verifier(
+    'les livres numérotés se suivent sans se contaminer',
+    extraireReferences(listeNumerotee).map(formaterReference).join(', ') === listeNumerotee,
+    extraireReferences(listeNumerotee).map(formaterReference),
+  );
+  // La virgule collée au chiffre reste un séparateur de verset, à la française.
+  verifier(
+    'la notation « Jean 3,16 » est comprise',
+    extraireReferences('Jean 3,16').map(formaterReference).join('') === 'Jean 3:16',
+    extraireReferences('Jean 3,16').map(formaterReference),
+  );
+
   console.log('\nLes étapes qui ouvrent un outil');
   const avecAtelier = methodesEtude.flatMap((m) =>
     m.etapes.filter((e) => e.atelier).map((e) => `${m.id}/${e.cle}`),

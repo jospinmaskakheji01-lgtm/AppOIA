@@ -218,7 +218,12 @@ export function analyserReference(brut: string): ReferenceBiblique | undefined {
  * une référence mal écrite qu'en inventer une.
  */
 export function extraireReferences(texte: string): ReferenceBiblique[] {
-  const nombres = /\d+(?:\s*[:.]\s*\d+(?:\s*[-–]\s*\d+)?)?/g;
+  // La virgule sépare un chapitre de son verset — « Jean 3,16 » — mais aussi
+  // les références d'une liste. On ne la lit comme séparateur de verset que
+  // collée au chiffre suivant : sans quoi, dans « 2 Corinthiens 2, 2
+  // Corinthiens 7 », le « 2 » du livre suivant devenait un verset du chapitre
+  // précédent et l'application inventait un « 2 Corinthiens 2:2 ».
+  const nombres = /\d+(?:\s*[:.]\s*\d+|,\d+)?(?:\s*[-–]\s*\d+)?/g;
   const vues = new Set<string>();
   const sortie: ReferenceBiblique[] = [];
   let precedente: { ref: ReferenceBiblique; fin: number } | undefined;
@@ -232,7 +237,13 @@ export function extraireReferences(texte: string): ReferenceBiblique[] {
 
   for (const m of texte.matchAll(nombres)) {
     const debut = m.index ?? 0;
-    const avant = texte.slice(0, debut).replace(/\s+$/, '');
+    // Le nom du livre ne franchit ni une virgule, ni un point-virgule, ni une
+    // fin de ligne : au-delà, ce sont les mots d'une autre référence.
+    const avant = texte
+      .slice(0, debut)
+      .split(/[,;\n]/)
+      .pop()!
+      .replace(/\s+$/, '');
     const mots = avant.split(/\s+/).filter(Boolean).slice(-3);
 
     let trouvee: ReferenceBiblique | undefined;
