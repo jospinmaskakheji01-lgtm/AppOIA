@@ -216,6 +216,14 @@ export function rechercherDansTexte(
     .slice(0, options.limite ?? 60);
 }
 
+/**
+ * Tous les versets d'une version, dans l'ordre où le module les a fournis.
+ * Sert aux relevés qui doivent être exhaustifs, la concordance en premier.
+ */
+export function versetsDeLaVersion(versionId: string): VersetTexte[] {
+  return versions.get(versionId)?.versets ?? [];
+}
+
 /** Les livres réellement présents dans une version, dans l'ordre canonique. */
 export function livresDeLaVersion(versionId: string): string[] {
   const chargee = versions.get(versionId);

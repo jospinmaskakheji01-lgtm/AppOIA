@@ -5,5 +5,6 @@ export * from './reference';
 export * from './bible';
 export * from './registre';
 export * from './recherche';
+export * from './concordance';
 export * from './assistant';
 export * from './bootstrap';

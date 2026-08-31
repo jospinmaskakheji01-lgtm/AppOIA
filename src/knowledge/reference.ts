@@ -201,6 +201,77 @@ export function analyserReference(brut: string): ReferenceBiblique | undefined {
   };
 }
 
+/**
+ * Toutes les références citées dans un texte libre, dans leur ordre d'apparition.
+ *
+ * L'étude de personnages fait établir la liste des passages à une étape, puis
+ * les relire à quatre étapes suivantes. Si l'application ne sait pas relire ce
+ * que l'utilisateur a écrit, elle lui demande de retaper ses références à
+ * chaque fois — ou de sortir de l'étude pour aller les rechercher ailleurs.
+ *
+ * On part des nombres, et non des noms : c'est le nombre qui signale une
+ * référence possible, et les mots qui le précèdent qui disent de quel livre il
+ * s'agit. On essaie les trois derniers mots, puis les deux derniers, puis le
+ * dernier — « Cantique des cantiques » est le nom le plus long du canon — et
+ * c'est `analyserReference` qui tranche : un nom qui n'est pas un livre, ou un
+ * chapitre qui dépasse ce que le livre compte, est écarté. Mieux vaut manquer
+ * une référence mal écrite qu'en inventer une.
+ */
+export function extraireReferences(texte: string): ReferenceBiblique[] {
+  const nombres = /\d+(?:\s*[:.]\s*\d+(?:\s*[-–]\s*\d+)?)?/g;
+  const vues = new Set<string>();
+  const sortie: ReferenceBiblique[] = [];
+  let precedente: { ref: ReferenceBiblique; fin: number } | undefined;
+
+  const retenir = (ref: ReferenceBiblique) => {
+    const cle = formaterReference(ref);
+    if (vues.has(cle)) return;
+    vues.add(cle);
+    sortie.push(ref);
+  };
+
+  for (const m of texte.matchAll(nombres)) {
+    const debut = m.index ?? 0;
+    const avant = texte.slice(0, debut).replace(/\s+$/, '');
+    const mots = avant.split(/\s+/).filter(Boolean).slice(-3);
+
+    let trouvee: ReferenceBiblique | undefined;
+    for (let i = 0; i < mots.length && !trouvee; i++) {
+      trouvee = analyserReference(`${mots.slice(i).join(' ')} ${m[0]}`);
+    }
+
+    if (trouvee) {
+      retenir(trouvee);
+      precedente = { ref: trouvee, fin: debut + m[0].length };
+      continue;
+    }
+
+    // « Daniel 1 à 6 », « Actes 13-14 » : un nombre que rien ne rattache à un
+    // livre, séparé du précédent par un simple tiret ou « à », continue la
+    // référence d'avant. On développe la plage, un chapitre à la fois, parce
+    // que c'est ainsi qu'on les relit.
+    const liaison = precedente ? texte.slice(precedente.fin, debut) : '';
+    const chapitre = Number(m[0]);
+    if (
+      precedente &&
+      precedente.ref.verset === undefined &&
+      /^\s*(?:[-–]|à|au|a)\s*$/i.test(liaison) &&
+      Number.isInteger(chapitre) &&
+      chapitre > precedente.ref.chapitre &&
+      chapitre <= (trouverLivre(precedente.ref.livre)?.chapitres ?? 0)
+    ) {
+      for (let c = precedente.ref.chapitre + 1; c <= chapitre; c++) {
+        retenir({ livre: precedente.ref.livre, chapitre: c });
+      }
+      precedente = {
+        ref: { livre: precedente.ref.livre, chapitre },
+        fin: debut + m[0].length,
+      };
+    }
+  }
+  return sortie;
+}
+
 export function formaterReference(ref: ReferenceBiblique): string {
   const base = `${ref.livre} ${ref.chapitre}`;
   if (ref.verset === undefined) return base;

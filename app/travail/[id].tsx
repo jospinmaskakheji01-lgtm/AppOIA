@@ -1,6 +1,6 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Alert,
   KeyboardAvoidingView,
@@ -13,8 +13,11 @@ import {
   View,
 } from 'react-native';
 
+import { Concordance } from '../../src/components/concordance';
+import { LecteurPassage } from '../../src/components/lecteur-passage';
 import { Bouton, Carte, Etiquette, Separateur, SousTitre } from '../../src/components/ui';
 import { getMethodeEtude } from '../../src/data/methodes-etude';
+import { extraireReferences, formaterReference, ReferenceBiblique } from '../../src/knowledge';
 import { useApp } from '../../src/store/AppContext';
 import { fontSize, radius, spacing } from '../../src/theme/theme';
 
@@ -41,6 +44,30 @@ export default function AtelierEtude() {
     () => travail?.reponses ?? {},
   );
   const [rang, setRang] = useState(0);
+  /** Rang du passage ouvert à la lecture ; `undefined` = panneau fermé. */
+  const [lecture, setLecture] = useState<number | undefined>();
+  /** Un passage lu hors de la liste — un verset touché dans le relevé. */
+  const [passageSeul, setPassageSeul] = useState<ReferenceBiblique | undefined>();
+
+  /**
+   * Les passages de l'étude : ceux que l'utilisateur a écrits, à n'importe
+   * quelle étape. C'est ce qui relie les étapes entre elles — la liste dressée
+   * à la deuxième sert aux quatre lectures qui suivent, sans qu'il ait à la
+   * retaper ni à sortir de l'atelier pour la retrouver.
+   */
+  const references = useMemo<ReferenceBiblique[]>(() => {
+    const vues = new Set<string>();
+    const sortie: ReferenceBiblique[] = [];
+    for (const cle of Object.keys(reponses)) {
+      for (const ref of extraireReferences(reponses[cle] ?? '')) {
+        const nom = formaterReference(ref);
+        if (vues.has(nom)) continue;
+        vues.add(nom);
+        sortie.push(ref);
+      }
+    }
+    return sortie;
+  }, [reponses]);
 
   const travailId = travail?.id;
   const enregistrer = useCallback(() => {
@@ -195,6 +222,80 @@ export default function AtelierEtude() {
           </Text>
         ) : null}
 
+        {etape.atelier === 'concordance' ? (
+          <Concordance
+            sujet={travail.sujet}
+            onLire={(ref) => {
+              // Un verset ouvert depuis le relevé n'est pas encore dans la
+              // liste de l'étude : on le lit seul, sans fausser les passages.
+              setPassageSeul(ref);
+              setLecture(0);
+            }}
+            onAjouter={(texte) =>
+              setReponses((r) => {
+                const actuel = (r[etape.cle] ?? '').trim();
+                return { ...r, [etape.cle]: actuel ? `${actuel}\n${texte}` : texte };
+              })
+            }
+          />
+        ) : null}
+
+        {/* Les passages de l'étude, lisibles depuis n'importe quelle étape.
+            Sans cela, « lisez tous les passages à la suite » obligeait à sortir
+            de l'atelier — et l'on n'y revenait pas. */}
+        {references.length > 0 ? (
+          <View style={{ marginTop: spacing.lg }}>
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+              }}>
+              <Etiquette>Mes passages · {references.length}</Etiquette>
+              <Pressable
+                onPress={() => {
+                  setPassageSeul(undefined);
+                  setLecture(0);
+                }}
+                hitSlop={8}>
+                <Text
+                  style={{ color: t.colors.primary, fontSize: fontSize.sm, fontWeight: '700' }}>
+                  Tout lire →
+                </Text>
+              </Pressable>
+            </View>
+            <View
+              style={{
+                flexDirection: 'row',
+                flexWrap: 'wrap',
+                gap: spacing.sm,
+                marginTop: spacing.md,
+              }}>
+              {references.map((r, i) => (
+                <Pressable
+                  key={`${formaterReference(r)}-${i}`}
+                  onPress={() => {
+                    setPassageSeul(undefined);
+                    setLecture(i);
+                  }}
+                  style={{
+                    paddingHorizontal: spacing.md,
+                    paddingVertical: 7,
+                    borderRadius: radius.pill,
+                    borderWidth: 1,
+                    borderColor: t.colors.border,
+                    backgroundColor: t.colors.surface,
+                  }}>
+                  <Text
+                    style={{ color: t.colors.text, fontSize: fontSize.xs, fontWeight: '700' }}>
+                    {formaterReference(r)}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+          </View>
+        ) : null}
+
         <TextInput
           value={reponses[etape.cle] ?? ''}
           onChangeText={(v) => setReponses((r) => ({ ...r, [etape.cle]: v }))}
@@ -292,6 +393,12 @@ export default function AtelierEtude() {
           </Text>
         </Pressable>
       </ScrollView>
+
+      <LecteurPassage
+        references={passageSeul ? [passageSeul] : references}
+        depart={lecture}
+        onFermer={() => setLecture(undefined)}
+      />
     </KeyboardAvoidingView>
   );
 }

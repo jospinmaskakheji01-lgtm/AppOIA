@@ -7,6 +7,9 @@ import {
   amorcerBaseDeConnaissances,
   analyserReference,
   chapitresDuLivre,
+  concordance,
+  extraireReferences,
+  passagesDuReleve,
   comparerVersions,
   commentairesPour,
   conseilPourQuestion,
@@ -923,6 +926,94 @@ async function principal(): Promise<void> {
     (c) => c.version.id === 'louange-vivante',
   );
   verifier('hors des Psaumes, la version est signalée absente', Boolean(horsPsaumes?.absent));
+
+  console.log('\nConcordance');
+  const segond = versionsDisponibles().find((v) => v.abreviation === 'LSG');
+  const relDaniel = segond ? concordance('Daniel', segond.id) : undefined;
+  verifier('le nom est relevé dans la version complète', (relDaniel?.total ?? 0) > 50, relDaniel?.total);
+  verifier(
+    'le relevé couvre les livres hors du livre de Daniel',
+    (relDaniel?.livres.length ?? 0) >= 4,
+    relDaniel?.livres.map((l) => l.livre),
+  );
+  verifier(
+    'chaque verset relevé contient bien le mot',
+    (relDaniel?.livres ?? []).every((l) =>
+      l.versets.every((v) => v.texte.toLowerCase().includes('daniel')),
+    ),
+  );
+  verifier(
+    'les livres sortent dans l’ordre du canon',
+    (relDaniel?.livres ?? []).every((l, i, tous) => i === 0 || tous[i - 1].rang < l.rang),
+    relDaniel?.livres.map((l) => l.livre),
+  );
+  // Le relevé serait faux s'il attrapait les mots qui commencent pareil : la
+  // tribu de Dan n'est pas le prophète Daniel.
+  const relDan = segond ? concordance('Dan', segond.id) : undefined;
+  verifier(
+    'le mot cherché doit être entier',
+    (relDan?.livres ?? []).every((l) => l.livre !== 'Daniel') && (relDan?.total ?? 0) > 0,
+    relDan?.livres.map((l) => l.livre),
+  );
+  verifier(
+    'une version absente ne rend rien plutôt qu’un relevé vide trompeur',
+    concordance('Daniel', 'version-inexistante') === undefined,
+  );
+
+  // La liste reportée dans la réponse doit être relisible par l'application
+  // elle-même : sans quoi les passages ne remontent pas aux étapes suivantes.
+  const passagesDaniel = relDaniel ? passagesDuReleve(relDaniel) : [];
+  verifier(
+    'un livre qui nomme peu le sujet donne ses versets',
+    passagesDaniel.some((r) => r.livre === 'Ézéchiel' && r.verset !== undefined),
+    passagesDaniel.filter((r) => r.livre === 'Ézéchiel').map(formaterReference),
+  );
+  verifier(
+    'un livre qui le nomme partout donne ses chapitres',
+    passagesDaniel.filter((r) => r.livre === 'Daniel').every((r) => r.verset === undefined),
+  );
+  const listeEcrite = passagesDaniel.map(formaterReference).join(', ');
+  verifier(
+    'la liste écrite se relit intégralement',
+    extraireReferences(listeEcrite).map(formaterReference).join(', ') === listeEcrite,
+    { ecrit: listeEcrite.slice(0, 120), relu: extraireReferences(listeEcrite).map(formaterReference).join(', ').slice(0, 120) },
+  );
+
+  console.log('\nRéférences citées dans un texte libre');
+  const citations = extraireReferences(
+    `Daniel 1 à 3 racontent sa jeunesse. Voir aussi Dn 9:1-19, Ézéchiel 14:14 et Matthieu 24:15.`,
+  ).map(formaterReference);
+  verifier(
+    'les chapitres d’une plage sont développés un à un',
+    ['Daniel 1', 'Daniel 2', 'Daniel 3'].every((r) => citations.includes(r)),
+    citations,
+  );
+  verifier(
+    'une abréviation suivie d’un mot de liaison est reconnue',
+    citations.includes('Daniel 9:1-19') && citations.includes('Matthieu 24:15'),
+    citations,
+  );
+  verifier('les accents ne gênent pas', citations.includes('Ézéchiel 14:14'), citations);
+  verifier(
+    'les nombres qui ne sont pas des références sont laissés de côté',
+    extraireReferences('Il a vécu 70 ans, ce qui fait 3 générations.').length === 0,
+  );
+  verifier(
+    'un livre au nom composé est reconnu',
+    extraireReferences('Voir Cantique des cantiques 2 et 1 Corinthiens 13').map(formaterReference)
+      .join(' · ') === 'Cantique des cantiques 2 · 1 Corinthiens 13',
+    extraireReferences('Voir Cantique des cantiques 2 et 1 Corinthiens 13').map(formaterReference),
+  );
+
+  console.log('\nLes étapes qui ouvrent un outil');
+  const avecAtelier = methodesEtude.flatMap((m) =>
+    m.etapes.filter((e) => e.atelier).map((e) => `${m.id}/${e.cle}`),
+  );
+  verifier('les étapes de relevé ouvrent la concordance', avecAtelier.length === 4, avecAtelier);
+  verifier(
+    'toute étape qui ouvre un outil l’annonce aussi en toutes lettres',
+    methodesEtude.every((m) => m.etapes.every((e) => !e.atelier || Boolean(e.outil))),
+  );
 
   console.log('\nFusion de deux sources sur une même entrée');
   const fusion = enregistrerModule({

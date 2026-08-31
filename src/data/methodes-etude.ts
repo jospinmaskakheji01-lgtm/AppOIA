@@ -40,6 +40,13 @@ export interface EtapeEtude {
   garde?: string;
   /** Ce que l'application met à disposition ici. */
   outil?: string;
+  /**
+   * L'outil que l'étape ouvre pour de bon, au lieu de le décrire.
+   * `concordance` : chercher un mot dans la Bible installée et relever chaque
+   * passage — ce que ces étapes demandent de faire, et qu'on ne peut pas faire
+   * de tête.
+   */
+  atelier?: 'concordance';
   /** Hauteur du champ de réponse : certaines étapes demandent plus de place. */
   hauteur?: number;
 }
@@ -147,7 +154,8 @@ export const methodesEtude: MethodeEtude[] = [
           `Porte-t-il un autre nom ailleurs (Saul et Paul, Jacob et Israël, Simon et Pierre) ?`,
           `D'autres textes parlent-ils de lui sans le nommer ?`,
         ],
-        outil: `La recherche de l'application trouve le nom dans toutes les versions installées.`,
+        outil: `Cherchez le nom ci-dessous : l'application relève tous les versets où il paraît, et chacun s'ouvre à la lecture. Les textes qui parlent de lui sans le nommer, c'est à vous de les ajouter.`,
+        atelier: 'concordance',
         garde: `Une vie étudiée sur les seuls passages flatteurs n'est plus une vie, c'est un portrait.`,
         hauteur: 150,
       },
@@ -276,7 +284,8 @@ export const methodesEtude: MethodeEtude[] = [
           `Quels mots dois-je chercher, et quels synonymes ?`,
           `Quels passages traitent du sujet sans employer le mot ?`,
         ],
-        outil: `La recherche et le dictionnaire de l'application couvrent les versions et les ouvrages installés.`,
+        outil: `Cherchez le mot ci-dessous, puis ses synonymes l'un après l'autre : un thème se dit rarement d'une seule façon.`,
+        atelier: 'concordance',
         hauteur: 150,
       },
       {
@@ -364,7 +373,8 @@ export const methodesEtude: MethodeEtude[] = [
           `Sur quelle étendue vais-je travailler ?`,
           `Combien de passages cela représente-t-il ? Est-ce tenable ?`,
         ],
-        outil: `La recherche de l'application interroge les quatre versions installées à la fois.`,
+        outil: `Cherchez le mot ci-dessous, et changez de version : les traducteurs ne rendent pas tous la même notion par le même mot.`,
+        atelier: 'concordance',
         hauteur: 180,
       },
       {
@@ -606,6 +616,8 @@ export const methodesEtude: MethodeEtude[] = [
           `Combien de fois apparaît-il ?`,
           `Est-il concentré dans un livre, ou répandu partout ?`,
         ],
+        outil: `Le relevé ci-dessous donne le compte exact et sa répartition par livre.`,
+        atelier: 'concordance',
         hauteur: 150,
       },
       {
