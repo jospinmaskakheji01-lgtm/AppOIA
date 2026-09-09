@@ -4,6 +4,7 @@ import { ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Carte, Etiquette, Separateur, SousTitre, Titre } from '../../src/components/ui';
+import { GENRES, NOMBRE_DE_MEDITATIONS } from '../../src/data/meditation-quotidienne';
 import {
   dureesSilence,
   etapesMeditationOIA,
@@ -15,9 +16,10 @@ import { useApp } from '../../src/store/AppContext';
 import { fontSize, radius, spacing } from '../../src/theme/theme';
 
 export default function Mediter() {
-  const { theme: t, etat } = useApp();
+  const { theme: t, etat, meditationDuJour } = useApp();
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const lue = etat.meditationsLues.includes(meditationDuJour.id);
 
   return (
     <ScrollView
@@ -35,6 +37,28 @@ export default function Mediter() {
           ? `${etat.seancesTerminees} séance${etat.seancesTerminees > 1 ? 's' : ''} · ${etat.minutesMeditation} minutes passées devant Dieu.`
           : 'La méditation chrétienne ne vide pas l’esprit : elle le remplit de la Parole.'}
       </SousTitre>
+
+      <Separateur label="Chaque jour" />
+
+      <Carte onPress={() => router.push('/meditation/jour')} accent>
+        <Etiquette>
+          {lue ? 'Lue aujourd’hui' : 'Préparée pour aujourd’hui'} · méditation{' '}
+          {etat.meditationsLues.length + (lue ? 0 : 1)} sur {NOMBRE_DE_MEDITATIONS}
+        </Etiquette>
+        <Text
+          style={{
+            color: t.colors.text,
+            fontSize: fontSize.xl,
+            fontWeight: '700',
+            marginTop: spacing.sm,
+          }}>
+          {meditationDuJour.titre}
+        </Text>
+        <SousTitre style={{ marginTop: spacing.xs }}>
+          {GENRES[meditationDuJour.genre].titre} · {meditationDuJour.references.join(' ; ')} —
+          texte, méditation, prière et une chose à faire. Rien à écrire.
+        </SousTitre>
+      </Carte>
 
       <Separateur label="Méditation OIA" />
 

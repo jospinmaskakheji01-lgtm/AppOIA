@@ -8,6 +8,11 @@ import React, {
   useState,
 } from 'react';
 
+import {
+  getMeditationQuotidienne,
+  meditationAuRang,
+  MeditationQuotidienne,
+} from '../data/meditation-quotidienne';
 import { CleApplication, CleInterpretation, CleObservation } from '../data/oia';
 import { CleQuestionA, CleQuestionB } from '../data/oia-simplifiee';
 import { useSchemaSysteme } from '../theme/schema-systeme';
@@ -138,6 +143,14 @@ export interface EtatApp {
   versetsMemorises: string[];
   minutesMeditation: number;
   seancesTerminees: number;
+  /** Les méditations quotidiennes déjà lues, dans l'ordre où elles l'ont été. */
+  meditationsLues: string[];
+  /**
+   * La méditation attribuée pour un jour donné. Une fois attribuée, elle ne
+   * bouge plus de la journée : sans cela, la lire la ferait aussitôt remplacer
+   * par la suivante, et on ne pourrait pas y revenir le soir.
+   */
+  meditationJour?: { jour: string; id: string };
   reglages: Reglages;
 }
 
@@ -152,6 +165,7 @@ const ETAT_INITIAL: EtatApp = {
   versetsMemorises: [],
   minutesMeditation: 0,
   seancesTerminees: 0,
+  meditationsLues: [],
   reglages: {
     theme: 'systeme',
     rappelActif: false,
@@ -200,6 +214,10 @@ interface ContexteApp {
   ajouterMeditation: (minutes: number) => void;
   majReglages: (reglages: Partial<Reglages>) => void;
   effacerMesDonnees: () => void;
+  /** La méditation préparée pour aujourd'hui. */
+  meditationDuJour: MeditationQuotidienne;
+  fixerMeditationDuJour: () => void;
+  marquerMeditationLue: (id: string) => void;
 }
 
 const Contexte = createContext<ContexteApp | undefined>(undefined);
@@ -247,6 +265,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
             ...charge,
             etudes: (charge.etudes ?? []).map(migrerEtude),
             travaux: charge.travaux ?? [],
+            meditationsLues: charge.meditationsLues ?? [],
             reglages: { ...ETAT_INITIAL.reglages, ...(charge.reglages ?? {}) },
           });
         }
@@ -526,6 +545,50 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }));
   }, []);
 
+  /**
+   * La méditation du jour.
+   *
+   * Le rang dans le parcours avance à la lecture, non au calendrier : une
+   * journée sautée ne fait pas manquer une méditation, elle la décale. Une fois
+   * attribuée pour un jour, elle y reste — la lire ne doit pas la remplacer
+   * aussitôt par la suivante.
+   */
+  const meditationDuJour = useMemo<MeditationQuotidienne>(() => {
+    const jour = cleJour();
+    if (etat.meditationJour?.jour === jour) {
+      const gardee = getMeditationQuotidienne(etat.meditationJour.id);
+      if (gardee) return gardee;
+    }
+    return meditationAuRang(etat.meditationsLues.length);
+  }, [etat.meditationJour?.jour, etat.meditationJour?.id, etat.meditationsLues.length]);
+
+  /** Fixe la méditation du jour, pour qu'elle ne change plus jusqu'à demain. */
+  const fixerMeditationDuJour = useCallback(() => {
+    const jour = cleJour();
+    setEtat((e) =>
+      e.meditationJour?.jour === jour
+        ? e
+        : { ...e, meditationJour: { jour, id: meditationAuRang(e.meditationsLues.length).id } },
+    );
+  }, []);
+
+  /** La méditation est lue : le parcours avance, et le jour compte comme vécu. */
+  const marquerMeditationLue = useCallback((id: string) => {
+    const jour = cleJour();
+    setEtat((e) =>
+      e.meditationsLues.includes(id)
+        ? e
+        : {
+            ...e,
+            meditationsLues: [...e.meditationsLues, id],
+            seancesTerminees: e.seancesTerminees + 1,
+            joursTermines: e.joursTermines.includes(jour)
+              ? e.joursTermines
+              : [...e.joursTermines, jour].sort(),
+          },
+    );
+  }, []);
+
   const majReglages = useCallback((reglages: Partial<Reglages>) => {
     setEtat((e) => ({ ...e, reglages: { ...e.reglages, ...reglages } }));
   }, []);
@@ -555,6 +618,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       terminerTravail,
       supprimerTravail,
       effacerMesDonnees,
+      meditationDuJour,
+      fixerMeditationDuJour,
+      marquerMeditationLue,
       terminerJourPlan,
       reinitialiserPlan,
       ajouterEntree,
@@ -583,6 +649,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       terminerTravail,
       supprimerTravail,
       effacerMesDonnees,
+      meditationDuJour,
+      fixerMeditationDuJour,
+      marquerMeditationLue,
       terminerJourPlan,
       reinitialiserPlan,
       ajouterEntree,

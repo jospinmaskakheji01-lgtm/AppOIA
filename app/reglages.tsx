@@ -79,7 +79,7 @@ export default function Reglages() {
       majReglages({ rappelActif: false });
       return;
     }
-    const ok = await programmerRappel(etat.reglages.rappelHeure);
+    const ok = await programmerRappel(etat.reglages.rappelHeure, etat.meditationsLues.length);
     if (!ok) {
       Alert.alert(
         'Notifications non autorisées',
@@ -93,7 +93,7 @@ export default function Reglages() {
 
   const choisirHeure = async (heure: string) => {
     majReglages({ rappelHeure: heure });
-    if (etat.reglages.rappelActif) await programmerRappel(heure);
+    if (etat.reglages.rappelActif) await programmerRappel(heure, etat.meditationsLues.length);
   };
 
   const etudesTerminees = etat.etudes.filter((e) => e.terminee).length;
@@ -353,8 +353,8 @@ export default function Reglages() {
         <LigneBascule
           icone={IconeCloche}
           teinte="or"
-          titre="Me rappeler mon temps avec Dieu"
-          sousTitre="Une notification quotidienne avec le verset du jour"
+          titre="Ma méditation du matin"
+          sousTitre="Chaque matin, la méditation préparée pour la journée"
           valeur={etat.reglages.rappelActif}
           onChange={basculerRappel}
         />

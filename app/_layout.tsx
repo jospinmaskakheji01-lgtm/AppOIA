@@ -1,4 +1,5 @@
-import { Stack } from 'expo-router';
+import * as Notifications from 'expo-notifications';
+import { Stack, useRouter } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import * as SystemUI from 'expo-system-ui';
@@ -7,6 +8,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { amorcerBaseDeConnaissances } from '../src/knowledge';
 import { AppProvider, useApp } from '../src/store/AppContext';
+import { programmerRappel } from '../src/utils/notifications';
 
 // La base de connaissances est construite une fois, au chargement du module.
 amorcerBaseDeConnaissances();
@@ -14,7 +16,8 @@ amorcerBaseDeConnaissances();
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
 function Navigation() {
-  const { pret, theme } = useApp();
+  const { pret, theme, etat } = useApp();
+  const router = useRouter();
 
   useEffect(() => {
     if (pret) SplashScreen.hideAsync().catch(() => {});
@@ -26,6 +29,40 @@ function Navigation() {
   useEffect(() => {
     SystemUI.setBackgroundColorAsync(theme.colors.background).catch(() => {});
   }, [theme.colors.background]);
+
+  /**
+   * Toucher la notification ouvre la méditation du jour.
+   *
+   * Deux chemins, parce qu'il y a deux cas : l'application était en mémoire, ou
+   * elle était fermée. Dans le second, aucun événement n'arrive — il faut aller
+   * chercher la réponse qui a lancé l'application.
+   */
+  useEffect(() => {
+    if (!pret) return;
+    const ouvrir = (donnees: unknown) => {
+      const route = (donnees as { route?: unknown } | undefined)?.route;
+      if (typeof route === 'string') router.push(route as never);
+    };
+    Notifications.getLastNotificationResponseAsync()
+      .then((reponse) => {
+        if (reponse) ouvrir(reponse.notification.request.content.data);
+      })
+      .catch(() => {});
+    const abonnement = Notifications.addNotificationResponseReceivedListener((reponse) => {
+      ouvrir(reponse.notification.request.content.data);
+    });
+    return () => abonnement.remove();
+  }, [pret, router]);
+
+  /**
+   * Remettre les rappels d'aplomb à chaque ouverture. Ils annoncent chacun une
+   * méditation précise : si le parcours a avancé autrement qu'un par jour, les
+   * annonces déjà posées ne correspondent plus.
+   */
+  useEffect(() => {
+    if (!pret || !etat.reglages.rappelActif) return;
+    programmerRappel(etat.reglages.rappelHeure, etat.meditationsLues.length).catch(() => {});
+  }, [pret, etat.reglages.rappelActif, etat.reglages.rappelHeure, etat.meditationsLues.length]);
 
   if (!pret) return null;
 
@@ -50,6 +87,7 @@ function Navigation() {
         <Stack.Screen name="lecture/[id]" options={{ title: 'Plan de lecture' }} />
         <Stack.Screen name="lecture/[id]/jour/[jour]" options={{ title: 'Lecture du jour' }} />
         <Stack.Screen name="meditation/[id]" options={{ headerShown: false }} />
+        <Stack.Screen name="meditation/jour" options={{ headerShown: false }} />
         <Stack.Screen name="meditation/oia" options={{ headerShown: false }} />
         <Stack.Screen name="meditation/silence" options={{ headerShown: false }} />
         <Stack.Screen name="oia/[id]" options={{ title: 'Étude OIA' }} />

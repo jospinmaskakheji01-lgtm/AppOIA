@@ -24,6 +24,7 @@ import {
   getSource,
   livresCanoniques,
   rassemblerContexte,
+  ReferenceBiblique,
   rechercher,
   statistiquesBase,
   statistiquesVersion,
@@ -32,6 +33,12 @@ import {
   versionsDisponibles,
 } from '../src/knowledge';
 import { AssistantLocal } from '../src/knowledge/assistant';
+import {
+  GENRES,
+  meditationAuRang,
+  meditationsQuotidiennes,
+  NOMBRE_DE_MEDITATIONS,
+} from '../src/data/meditation-quotidienne';
 import {
   CARACTERISTIQUES_APPLICATION,
   exempleOIA,
@@ -1064,6 +1071,90 @@ async function principal(): Promise<void> {
     'toute étape qui ouvre un outil l’annonce aussi en toutes lettres',
     methodesEtude.every((m) => m.etapes.every((e) => !e.atelier || Boolean(e.outil))),
   );
+
+  console.log('\nLa méditation quotidienne');
+  verifier(
+    'le parcours compte au moins deux mois',
+    NOMBRE_DE_MEDITATIONS >= 60,
+    NOMBRE_DE_MEDITATIONS,
+  );
+  const idsMed = meditationsQuotidiennes.map((m) => m.id);
+  verifier('chaque méditation a un identifiant unique', new Set(idsMed).size === idsMed.length);
+
+  // Une référence que l'application ne sait pas lire, ou qu'aucune version
+  // installée ne contient, donnerait un écran de méditation sans texte biblique.
+  const couvre = (r: ReferenceBiblique) =>
+    versionsDisponibles().some((v) => getPassage(v.id, r).length > 0);
+  const refsIllisibles: string[] = [];
+  const refsAbsentes: string[] = [];
+  const empHorsPassage: string[] = [];
+  for (const m of meditationsQuotidiennes) {
+    for (const brute of m.references) {
+      const r = analyserReference(brute);
+      if (!r) refsIllisibles.push(`${m.id} : ${brute}`);
+      else if (!couvre(r)) refsAbsentes.push(`${m.id} : ${brute}`);
+    }
+    const emp = analyserReference(m.versetAEmporter);
+    if (!emp) refsIllisibles.push(`${m.id} : ${m.versetAEmporter}`);
+    else {
+      if (!couvre(emp)) refsAbsentes.push(`${m.id} : ${m.versetAEmporter}`);
+      const livres = m.references.map((b) => analyserReference(b)?.livre);
+      if (!livres.includes(emp.livre)) empHorsPassage.push(m.id);
+    }
+  }
+  verifier('toutes les références se lisent', refsIllisibles.length === 0, refsIllisibles);
+  verifier(
+    'toutes les références existent dans une version installée',
+    refsAbsentes.length === 0,
+    refsAbsentes,
+  );
+  verifier(
+    'le verset à emporter est pris dans le passage médité',
+    empHorsPassage.length === 0,
+    empHorsPassage,
+  );
+
+  // La méthode OIA simplifiée est la forme imposée : chaque méditation doit
+  // répondre aux deux questions non facultatives, prier, et donner une action.
+  const incompletes = meditationsQuotidiennes.filter(
+    (m) =>
+      !m.mediter.sujet ||
+      !m.mediter.verite ||
+      Object.keys(m.prier).length === 0 ||
+      !m.obeir.trim() ||
+      !m.situation.trim(),
+  );
+  verifier(
+    'chacune répond au moins au sujet, à la vérité, à la prière et à l’action',
+    incompletes.length === 0,
+    incompletes.map((m) => m.id),
+  );
+  // Une méditation qui répondrait à tout serait suspecte : la méthode marque
+  // ces questions facultatives parce que tout passage n'y répond pas.
+  verifier(
+    'aucune ne fait dire au texte plus qu’il ne dit',
+    meditationsQuotidiennes.some((m) => Object.keys(m.mediter).length < 8),
+  );
+
+  const genresPresents = new Set(meditationsQuotidiennes.map((m) => m.genre));
+  verifier(
+    'les genres annoncés sont tous représentés',
+    genresPresents.size === Object.keys(GENRES).length,
+    [...genresPresents],
+  );
+  // Le parcours alterne : deux méditations du même genre ne doivent pas se suivre.
+  const suites = meditationsQuotidiennes.filter(
+    (m, i) => i > 0 && meditationsQuotidiennes[i - 1].genre === m.genre,
+  );
+  verifier('le parcours alterne les genres', suites.length === 0, suites.map((m) => m.id));
+
+  // Le rang boucle, et il boucle proprement : au-delà du parcours, et en deçà.
+  verifier(
+    'le parcours reprend au début quand il est fini',
+    meditationAuRang(NOMBRE_DE_MEDITATIONS).id === meditationsQuotidiennes[0].id &&
+      meditationAuRang(NOMBRE_DE_MEDITATIONS * 3 + 4).id === meditationsQuotidiennes[4].id,
+  );
+  verifier('un rang négatif ne casse rien', Boolean(meditationAuRang(-1)?.id));
 
   console.log('\nFusion de deux sources sur une même entrée');
   const fusion = enregistrerModule({

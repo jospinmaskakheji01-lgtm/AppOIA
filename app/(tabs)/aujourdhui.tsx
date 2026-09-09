@@ -14,6 +14,7 @@ import {
   Titre,
   BarreProgression,
 } from '../../src/components/ui';
+import { GENRES } from '../../src/data/meditation-quotidienne';
 import { seances } from '../../src/data/meditations';
 import { plans } from '../../src/data/plans';
 import { progressionTemps } from '../../src/data/oia';
@@ -23,12 +24,13 @@ import { fontSize, radius, spacing } from '../../src/theme/theme';
 import { cleJour, dateLongue, salutation } from '../../src/utils/dates';
 
 export default function Aujourdhui() {
-  const { etat, theme: t, serie } = useApp();
+  const { etat, theme: t, serie, meditationDuJour } = useApp();
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
   const verset = useMemo(() => versetDuJour(), []);
   const jourFait = etat.joursTermines.includes(cleJour());
+  const meditationLue = etat.meditationsLues.includes(meditationDuJour.id);
 
   /** Reprend le plan commencé le plus récemment, sinon propose le plan d'entrée. */
   const enCours = useMemo(() => {
@@ -91,6 +93,28 @@ export default function Aujourdhui() {
           <IconePersonne couleur={t.colors.textMuted} taille={26} />
         </Pressable>
       </View>
+
+      {/* La méditation du jour passe avant le reste : c'est ce que la
+          notification du matin annonce, et ce pour quoi on ouvre l'application. */}
+      <Pressable
+        onPress={() => router.push('/meditation/jour')}
+        style={{
+          padding: spacing.lg,
+          borderRadius: radius.lg,
+          backgroundColor: t.colors.primary,
+          marginBottom: spacing.md,
+        }}>
+        <Text style={{ color: '#FFFFFF', fontSize: fontSize.xs, fontWeight: '800', letterSpacing: 1 }}>
+          {meditationLue ? 'MÉDITATION DU JOUR · LUE' : 'VOTRE MÉDITATION DU JOUR'}
+        </Text>
+        <Text
+          style={{ color: '#FFFFFF', fontSize: fontSize.xxl, fontWeight: '700', marginTop: 4 }}>
+          {meditationDuJour.titre}
+        </Text>
+        <Text style={{ color: '#FFFFFFCC', fontSize: fontSize.sm, marginTop: 2 }}>
+          {GENRES[meditationDuJour.genre].titre} · {meditationDuJour.references.join(' ; ')}
+        </Text>
+      </Pressable>
 
       <CarteVerset
         etiquette={`Verset du jour · ${verset.theme}`}
