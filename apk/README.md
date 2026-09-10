@@ -1,20 +1,20 @@
 # Installer Lumière sur un téléphone Android
 
-**Fichier : `Lumiere-1.4.0.apk`** — 88 Mo. Il fonctionne sur tous les téléphones
+**Fichier : `Lumiere-1.5.0.apk`** — 88 Mo. Il fonctionne sur tous les téléphones
 Android récents comme anciens (architectures `arm64-v8a` et `armeabi-v7a`).
 
 L'application fonctionne entièrement hors connexion. Elle ne demande aucun
 compte et n'envoie rien sur Internet.
 
-## Si la version 1.3.0 est déjà installée
+## Si la version 1.4.0 est déjà installée
 
-**Ne la désinstallez pas.** Installez la 1.4.0 par-dessus : elle est signée avec
+**Ne la désinstallez pas.** Installez la 1.5.0 par-dessus : elle est signée avec
 la même clé, donc le téléphone la reconnaît comme une mise à jour et **vos
 méditations, vos études et votre journal sont conservés**.
 
 ## Installation, pas à pas
 
-1. Sur le téléphone, ouvrez cette page et touchez **`Lumiere-1.4.0.apk`**,
+1. Sur le téléphone, ouvrez cette page et touchez **`Lumiere-1.5.0.apk`**,
    puis le bouton de téléchargement (la flèche vers le bas).
 2. Le téléphone demande de confirmer : touchez **Télécharger quand même**.
    Il prévient simplement que le fichier ne vient pas du Play Store.
@@ -40,30 +40,33 @@ Store. Il ne signale pas un problème dans l'application.
 ### Si l'installation échoue quand même
 
 - **« Application non installée »** : une version signée avec une autre clé est
-  déjà présente. Ce ne devrait pas être le cas si vous venez de la 1.3.0
+  déjà présente. Ce ne devrait pas être le cas si vous venez de la 1.4.0
   téléchargée ici. Sinon, désinstallez d'abord, puis réinstallez — mais notez
   alors ce que vous voulez garder, car les écrits ne survivent pas à une
   désinstallation.
 - **Espace insuffisant** : il faut environ 250 Mo libres pour l'installation.
 
-## Ce qui est nouveau depuis la 1.3.0
+## Ce qui est nouveau depuis la 1.4.0
 
-- **L'étude biblique ne renvoie plus chercher les passages ailleurs.** À
-  l'étape « Établir la liste des passages », l'application cherche le nom dans
-  toute la Bible installée et relève chaque verset, livre par livre, avec les
-  comptes.
-- **Lire sans quitter l'étude.** Toucher un verset ouvre le chapitre par-dessus,
-  amené sur le verset visé ; on peut lire les chapitres d'avant et d'après, puis
-  fermer et retrouver sa réponse intacte.
-- **Les passages suivent d'une étape à l'autre.** La liste dressée une fois
-  reste disponible partout sous « Mes passages », avec un « Tout lire » qui les
-  enchaîne — ce que demande l'étape « lisez tous les passages à la suite ».
+- **La méditation quotidienne.** Chaque matin, une notification annonce la
+  méditation du jour ; la toucher ouvre directement l'écran, où tout est déjà
+  écrit. Rien à saisir : le texte biblique, la méditation, la prière, et une
+  seule chose à faire dans la journée.
+- **Soixante méditations préparées**, en six genres qui alternent d'un jour à
+  l'autre : paraboles de Jésus, récits bibliques, psaumes, enseignements de
+  Jésus, lettres des apôtres, prières et promesses. Elles suivent la méthode
+  O.I.A simplifiée de l'École d'Apollos.
+- Le parcours **avance à la lecture et non au calendrier** : une journée sautée
+  décale la suite, elle ne fait rien manquer.
 
-Ces outils valent pour les quatre méthodes qui relèvent des passages : étude de
-personnages, thématique ciblée, thématique générale et étude de mots.
+Pour recevoir le rappel du matin : **Plus → Rappel quotidien → Ma méditation du
+matin**, et choisissez l'heure. Android demandera l'autorisation d'envoyer des
+notifications ; il faut l'accorder.
 
 ## Ce que contient cette version
 
+- **Soixante méditations quotidiennes** préparées, une par jour, à lire sans
+  rien avoir à écrire.
 - La **méthode O.I.A** sous ses deux formes : la méditation quotidienne
   simplifiée (5 à 15 min) et l'étude biblique complète (1 à 2 h).
 - **Huit méthodes d'étude biblique** avec leur marche à suivre : étude de
@@ -81,7 +84,7 @@ personnages, thématique ciblée, thématique générale et étude de mots.
 Empreinte SHA-256 du fichier :
 
 ```
-926d69d64431b21a8996d29bea97a30312ad356aa699382e88b231602223e891
+52998f4a4975c0a5843e6d8f23e2692e518885665614c77ec383c9dfb8a72180
 ```
 
 Signature de l'application : `CN=Lumiere, OU=Application, O=Lumiere, C=FR`
